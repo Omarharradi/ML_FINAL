@@ -24,18 +24,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-hide_streamlit_style = """
-            <style>
-            /* Hide Streamlit hamburger menu */
-            #MainMenu {visibility: hidden;}
-            /* Hide Streamlit footer */
-            footer {visibility: hidden;}
-            footer:after {display: none;}
-            /* Optionally, hide the Streamlit header (if desired) */
-            header {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+#hide_streamlit_style = """
+#            <style>
+#            /* Hide Streamlit hamburger menu */
+#            #MainMenu {visibility: hidden;}
+#            /* Hide Streamlit footer */
+#            footer {visibility: hidden;}
+#            footer:after {display: none;}
+#            /* Optionally, hide the Streamlit header (if desired) */
+#            header {visibility: hidden;}
+#            </style>
+#            """
+#st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
 # --- Data Setup (adjust paths as needed) ---
