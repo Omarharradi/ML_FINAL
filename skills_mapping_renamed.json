@@ -1,0 +1,287 @@
+{
+    "D1: Executive and Senior Leadership": {
+        "Critical Skills": [
+            "Goal Setting",
+            "Problem-Solving",
+            "Communication Skills",
+            "Change Management"
+        ],
+        "Necessary": [
+            "Conflict Management",
+            "Building Effective Teams",
+            "Negotiating Ability",
+            "Accountability",
+            "Calculated Risk-Taking"
+        ],
+        "Beneficial Skills": [
+            "Emotional Self-awareness",
+            "Empathy",
+            "Resilience/Hardiness",
+            "Supportiveness",
+            "Innovative Mindset"
+        ]
+    },
+    "D2: Executive Level Operations": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Project Management",
+            "Information Gathering & Analysis",
+            "Change Management",
+            "Communication Skills"
+        ],
+        "Necessary": [
+            "Accountability",
+            "Measuring & Evaluating Results",
+            "Building Effective Teams",
+            "Conflict Management"
+        ],
+        "Beneficial Skills": [
+            "Innovative Mindset",
+            "Negotiating Ability",
+            "Resilience/Hardiness",
+            "Coaching & Mentoring",
+            "Emotional Self-awareness"
+        ]
+    },
+    "D3: Senior Management - Operations and Logistics": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Project Management",
+            "Communication Skills",
+            "Accountability",
+            "Change Management"
+        ],
+        "Necessary": [
+            "Information Gathering & Analysis",
+            "Measuring & Evaluating Results",
+            "Building Effective Teams",
+            "Conflict Management"
+        ],
+        "Beneficial Skills": [
+            "Organization Skills",
+            "Negotiating Ability",
+            "Resilience/Hardiness",
+            "Coaching & Mentoring",
+            "Innovative Mindset"
+        ]
+    },
+    "D4: Logistics and Site Management": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Project Management",
+            "Organization Skills",
+            "Accountability",
+            "Communication Skills"
+        ],
+        "Necessary": [
+            "Monitoring Employee Performance",
+            "Measuring & Evaluating Results",
+            "Conflict Management",
+            "Building Effective Teams"
+        ],
+        "Beneficial Skills": [
+            "Negotiating Ability",
+            "Resilience/Hardiness",
+            "Innovative Mindset",
+            "Recruitment & Hiring",
+            "Supportiveness"
+        ]
+    },
+    "D5: Engineering and Technical Management": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Project Management",
+            "Communication Skills",
+            "Accountability",
+            "Change Management"
+        ],
+        "Necessary": [
+            "Information Gathering & Analysis",
+            "Measuring & Evaluating Results",
+            "Conflict Management",
+            "Building Effective Teams"
+        ],
+        "Beneficial Skills": [
+            "Innovative Mindset",
+            "Negotiating Ability",
+            "Resilience/Hardiness",
+            "Recruitment & Hiring",
+            "Supportiveness"
+        ]
+    },
+    "D6: Procurement and Supply Chain Management": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Project Management",
+            "Information Gathering & Analysis",
+            "Accountability",
+            "Measuring & Evaluating Results"
+        ],
+        "Necessary": [
+            "Conflict Management",
+            "Change Management",
+            "Communication Skills",
+            "Organization Skills"
+        ],
+        "Beneficial Skills": [
+            "Innovative Mindset",
+            "Resilience/Hardiness",
+            "Supportiveness",
+            "Recruitment & Hiring",
+            "Building Effective Teams"
+        ]
+    },
+    "D7: Corporate Quality Assurance and Control": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Accountability",
+            "Information Gathering & Analysis",
+            "Communication Skills"
+        ],
+        "Necessary": [
+            "Conflict Management",
+            "Change Management",
+            "Communication Skills",
+            "Organization Skills"
+        ],
+        "Beneficial Skills": [
+            "Innovative Mindset",
+            "Resilience/Hardiness",
+            "Supportiveness",
+            "Recruitment & Hiring",
+            "Building Effective Teams"
+        ]
+    },
+    "D8: Health, Safety, and Security": {
+        "Critical Skills": [
+            "Problem-Solving",
+            "Accountability",
+            "Information Gathering & Analysis",
+            "Communication Skills"
+        ],
+        "Necessary": [
+            "Conflict Management",
+            "Change Management",
+            "Resilience/Hardiness",
+            "Project Management",
+            "Measuring & Evaluating Results"
+        ],
+        "Beneficial Skills": [
+            "Negotiating Ability",
+            "Self-Control",
+            "Supportiveness",
+            "Monitoring Employee Performance",
+            "Calculated Risk-Taking"
+        ]
+    },
+    "D9: Corporate Governance and Compliance": {
+        "Critical Skills": [
+            "Information Gathering & Analysis",
+            "Accountability",
+            "Communication Skills",
+            "Conflict Management"
+        ],
+        "Necessary": [
+            "Project Management",
+            "Negotiating Ability",
+            "Measuring & Evaluating Results",
+            "Change Management",
+            "Listening Skills"
+        ],
+        "Beneficial Skills": [
+            "Fairness",
+            "Social Insight",
+            "Organization Skills",
+            "Managerial Courage",
+            "Emotional Self-awareness"
+        ]
+    },
+    "D10: Financial and Risk Control": {
+        "Critical Skills": [
+            "Information Gathering & Analysis",
+            "Problem-Solving",
+            "Accountability",
+            "Measuring & Evaluating Results"
+        ],
+        "Necessary": [
+            "Project Management",
+            "Organization Skills",
+            "Conflict Management",
+            "Negotiating Ability",
+            "Communication Skills"
+        ],
+        "Beneficial Skills": [
+            "Calculated Risk-Taking",
+            "Supportiveness",
+            "Fairness",
+            "Drive",
+            "Listening Skills"
+        ]
+    },
+    "D11: Corporate Strategy and Business Development": {
+        "Critical Skills": [
+            "Goal Setting",
+            "Information Gathering & Analysis",
+            "Problem-Solving",
+            "Negotiating Ability",
+            "Communication Skills"
+        ],
+        "Necessary": [
+            "Project Management",
+            "Change Management",
+            "Customer Orientation",
+            "Measuring & Evaluating Results"
+        ],
+        "Beneficial Skills": [
+            "Innovative Mindset",
+            "Charisma",
+            "Social Insight",
+            "Drive",
+            "Calculated Risk-Taking"
+        ]
+    },
+    "D12: Corporate Communications and Training": {
+        "Critical Skills": [
+            "Communication Skills",
+            "Training & Onboarding",
+            "Coaching & Mentoring",
+            "Goal Setting"
+        ],
+        "Necessary": [
+            "Organization Skills",
+            "Measuring & Evaluating Results",
+            "Conflict Management",
+            "Listening Skills",
+            "Building Effective Teams"
+        ],
+        "Beneficial Skills": [
+            "Social Insight",
+            "Supportiveness",
+            "Charisma",
+            "Emotional Self-awareness",
+            "Change Management"
+        ]
+    },
+    "D13: Administrative and Support Services": {
+        "Critical Skills": [
+            "Organization Skills",
+            "Problem-Solving",
+            "Communication Skills",
+            "Accountability"
+        ],
+        "Necessary": [
+            "Project Management",
+            "Customer Orientation",
+            "Conflict Management",
+            "Measuring & Evaluating Results",
+            "Recruitment & Hiring"
+        ],
+        "Beneficial Skills": [
+            "Supportiveness",
+            "Patience",
+            "Negotiating Ability",
+            "Social Insight",
+            "Building Effective Teams"
+        ]
+    }
+}
