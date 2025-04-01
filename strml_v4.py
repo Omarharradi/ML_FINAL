@@ -76,33 +76,8 @@ std_high = mean_lis + 1.5 * std_lis
 
 donut_fig = build_donut_chart(lis_data)
 hist_fig = build_histogram(lis_data)
-#fig_polar = build_polar_chart(lis_data)
-#fig_box = build_box_plot(lis_data)
-
-# Additional plots
-avg_overall = filtered_df.groupby("Dashboard Number")["LIS"].mean().reset_index()
-fig_polar = px.bar_polar(
-    avg_overall,
-    r="LIS",
-    theta="Dashboard Number",
-    color="Dashboard Number",
-    template="plotly_white",
-    title="Average Overall LIS by Dashboard (Polar Bar Chart)",
-    color_discrete_sequence=px.colors.qualitative.Bold
-)
-fig_polar.update_layout(
-    margin=dict(l=50, r=50, t=100, b=50),
-    polar=dict(radialaxis=dict(visible=True, range=[0, avg_overall["LIS"].max() * 1.1]))
-)
-fig_box = px.box(
-    filtered_df,
-    x="Dashboard Number",
-    y="Overall Results",
-    title="Box Plot of EQ by Dashboard",
-    template="plotly_white",
-    color="Dashboard Number",
-    color_discrete_sequence=px.colors.qualitative.Pastel
-)
+fig_box = build_box_plot(filtered_df)
+fig_polar = build_polar_chart(filtered_df)
 
 # Initialize LLM
 os.environ['GOOGLE_API_KEY'] = "AIzaSyDjv5kiOA45O25NPxjp9B60CcOLjBSS5vY"

@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import streamlit as st  
+import plotly.express as px
 
 @st.cache_data(show_spinner=False)
 def get_filtered_df(df, selected_dashboards, selected_positions):
@@ -19,6 +20,10 @@ def get_filtered_df(df, selected_dashboards, selected_positions):
 
 @st.cache_data(show_spinner=False)
 def build_donut_chart(lis_data):
+    ''' 
+    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardised metric to compare all individuals
+    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
+    '''
     mean_lis = np.mean(lis_data)
     std_lis = np.std(lis_data)
     std_low = mean_lis - 1.5 * std_lis
@@ -51,6 +56,10 @@ def build_donut_chart(lis_data):
 
 @st.cache_data(show_spinner=False)
 def build_histogram(lis_data):
+    ''' 
+    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardised metric to compare all individuals
+    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
+    '''
     mean_lis = np.mean(lis_data)
     std_lis = np.std(lis_data)
     std_low = mean_lis - 1.5 * std_lis
@@ -71,8 +80,8 @@ def build_histogram(lis_data):
     fig.add_vline(x=std_high, line=dict(color='green', dash='dash'),
                   annotation_text=f'1.5-std above: {std_high:.2f}', annotation_position="top right")
     fig.update_layout(
-        title="LIS Distribution",
-        xaxis_title="LIS Score",
+        title="Leadership Index Score (LIS) Distribution",
+        xaxis_title="Leadership Index Score (LIS) Score",
         yaxis_title="Frequency",
         template="plotly_white",
         width=700,
@@ -81,8 +90,12 @@ def build_histogram(lis_data):
     )
     return fig
 
-
+@st.cache_data(show_spinner=False)
 def radar_chart_plotly(dashboard, df, skills_mapping):
+    ''' 
+    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardised metric to compare all individuals
+    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
+    '''
     mapping = skills_mapping[dashboard]
     categories = ['Critical Skills', 'Necessary', 'Beneficial Skills']
 
@@ -134,18 +147,21 @@ def radar_chart_plotly(dashboard, df, skills_mapping):
     )
     return fig
 
-import plotly.express as px
-
+@st.cache_data(show_spinner=False)
 def build_polar_chart(df):
-    avg_overall = df.groupby("# Dashboard")["LIS"].mean().reset_index()
+    ''' 
+    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardised metric to compare all individuals
+    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
+    '''
+    avg_overall = df.groupby("Dashboard Number")["LIS"].mean().reset_index()
 
     fig = px.bar_polar(
         avg_overall,
         r="LIS",
-        theta="# Dashboard",
-        color="# Dashboard",
+        theta="Dashboard Number",
+        color="Dashboard Number",
         template="plotly_white",
-        title="Average Overall LIS by Dashboard (Polar Bar Chart)",
+        title="Average Overall Leadership Index Score (LIS) by Dashboard (Polar Bar Chart)",
         color_discrete_sequence=px.colors.qualitative.Bold
     )
 
@@ -155,17 +171,21 @@ def build_polar_chart(df):
             radialaxis=dict(visible=True, range=[0, avg_overall["LIS"].max() * 1.1])
         )
     )
-
     return fig
 
+@st.cache_data(show_spinner=False)
 def build_box_plot(df):
+    ''' 
+    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardised metric to compare all individuals
+    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
+    '''
     fig = px.box(
         df,
-        x="# Dashboard",
+        x="Dashboard Number",
         y="Overall Results",
         title="Box Plot of EQ by Dashboard",
         template="plotly_white",
-        color="# Dashboard",
+        color="Dashboard Number",
         color_discrete_sequence=px.colors.qualitative.Pastel
     )
     return fig
