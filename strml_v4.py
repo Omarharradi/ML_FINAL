@@ -68,12 +68,7 @@ with st.sidebar:
 filtered_df = get_filtered_df(df, selected_dashboards, selected_positions)
 lis_data = filtered_df['LIS']
 
-# Build charts using utils
-mean_lis = np.mean(lis_data) if len(lis_data) > 0 else 0
-std_lis = np.std(lis_data) if len(lis_data) > 0 else 0
-std_low = mean_lis - 1.5 * std_lis
-std_high = mean_lis + 1.5 * std_lis
-
+# Build charts using utils package
 donut_fig = build_donut_chart(lis_data)
 hist_fig = build_histogram(lis_data)
 fig_box = build_box_plot(filtered_df)
