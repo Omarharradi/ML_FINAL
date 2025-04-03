@@ -8,3 +8,4 @@ langchain_google_genai
 langchain-community
 chromadb
 langchain_experimental
+pysqlite3-binary>=0.5.0  # Ensures a recent SQLite version
