@@ -75,11 +75,13 @@ st.markdown("""
         border-radius: 5px; 
     }
     .user-message { 
-        background-color: #ADD8E6; /* Light Blue */
+        background-color: #007AFF; /* Apple's system blue */
+        color: white;
         text-align: right; 
     }
     .assistant-message { 
-        background-color: #ADD8E6; /* Light Gray */
+        background-color: #34C759; /* Apple's system green */
+        color: white;
         text-align: left; 
     }
     </style>
