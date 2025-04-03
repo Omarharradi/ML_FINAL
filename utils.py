@@ -485,3 +485,34 @@ For example, instead of just saying "William Smullen", your answer should be lik
 
     return ask
 
+
+import inspect
+import streamlit as st
+
+def display_insight(unique_key, build_func, lis_data, llm, expander_title=None):
+    """
+    Generates and displays insights for a given chart using session state.
+
+    Parameters:
+    - unique_key (str): A unique identifier for the chart (e.g., "donut", "hist", etc.).
+    - build_func (function): The chart function whose source code will be used.
+    - lis_data: Data to be passed to the get_insights_chart function.
+    - llm: The LLM instance to generate insights.
+    - expander_title (str, optional): Title for the expander. Defaults to "Insights for {unique_key}".
+    """
+    # Ensure that the session state dictionary exists
+    if "insights" not in st.session_state:
+        st.session_state["insights"] = {}
+
+    # Generate insight when the button is pressed
+    if st.button("🧠 Explain this graph", key=f"explain_{unique_key}"):
+        source_code = inspect.getsource(build_func)
+        with st.spinner("Generating insights..."):
+            response = get_insights_chart(lis_data, source_code, llm)
+        st.session_state["insights"][unique_key] = response
+
+    # Display the saved insight, if it exists
+    if unique_key in st.session_state["insights"]:
+        title = expander_title if expander_title else f"Insights for {unique_key}"
+        with st.expander(title, expanded=True):
+            st.info(st.session_state["insights"][unique_key])
