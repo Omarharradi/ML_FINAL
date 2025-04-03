@@ -83,9 +83,10 @@ lis_data = filtered_df['LIS']
 
 # Build charts using utils package
 donut_fig, donut_summary = build_donut_chart(lis_data)
-hist_fig = build_histogram(lis_data)
-fig_box = build_box_plot(filtered_df)
-fig_polar = build_polar_chart(filtered_df)
+hist_fig, hist_summary = build_histogram(lis_data)
+fig_box, summary_box  = build_box_plot(filtered_df)
+fig_polar, plar_stats = build_polar_chart(filtered_df)
+
 
 # Initialize LLM
 os.environ['GOOGLE_API_KEY'] = "AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg"
@@ -112,7 +113,7 @@ with col2_row:
         if st.button("🧠 Explain this graph", key="explain_hist"):
             source_code = inspect.getsource(build_histogram)
             with st.spinner("Generating insights..."):
-                response = get_insights_chart(lis_data=lis_data, source_code=source_code, llm=llm)   
+                response = get_insights_chart(lis_data=hist_summary, source_code=source_code, llm=llm)   
             st.info(response)
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -126,7 +127,7 @@ with col3_row:
         if st.button("🧠 Explain this graph", key="explain_polar"):
             source_code = inspect.getsource(build_polar_chart)
             with st.spinner("Generating insights..."):
-                response = get_insights_chart(lis_data=lis_data, source_code=source_code, llm=llm)   
+                response = get_insights_chart(lis_data=plar_stats, source_code=source_code, llm=llm)   
             st.info(response)
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -137,7 +138,7 @@ with col4_row:
         if st.button("🧠 Explain this graph", key="explain_box"):
             source_code = inspect.getsource(build_box_plot)
             with st.spinner("Generating insights..."):
-                response = get_insights_chart(lis_data=lis_data, source_code=source_code, llm=llm)   
+                response = get_insights_chart(lis_data=summary_box, source_code=source_code, llm=llm)   
             st.info(response)
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -146,12 +147,9 @@ st.subheader("Radar Chart")
 unique_dashboards = sorted(filtered_df["# Dashboard"].unique())
 if unique_dashboards:
     selected_radar = st.selectbox("Select Dashboard for Radar Chart", unique_dashboards)
-    radar_fig = radar_chart_plotly(selected_radar, filtered_df, skills_mapping)
-    print(selected_dashboards)
-    print(filtered_df)
-    print(skills_mapping)
-    
-    st.plotly_chart(radar_fig, use_container_width=True)
+    fig_radar, radar_stats = radar_chart_plotly(selected_radar, filtered_df, skills_mapping)
+
+    st.plotly_chart(fig_radar, use_container_width=True)
     with st.container():
         st.markdown("<div class='center-button'>", unsafe_allow_html=True)
         if st.button("🧠 Explain this graph", key="explain_radar"):

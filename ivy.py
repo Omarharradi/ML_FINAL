@@ -12,8 +12,15 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 import os
 
 from utils import get_filtered_df, build_donut_chart, build_histogram, build_polar_chart, build_box_plot, radar_chart_plotly, get_insights_chart, initialize_pipeline
+from dotenv import load_dotenv
+load_dotenv()
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/omar/development/my-service-account-key.json"
+
+# Use secrets from Streamlit Cloud
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+
+
 
 # Set page configuration early
 st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
@@ -99,7 +106,6 @@ fig_polar, plar_stats = build_polar_chart(filtered_df)
 
 
 # Initialize LLM
-os.environ['GOOGLE_API_KEY'] = "AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg"
 #llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 @st.cache_resource
