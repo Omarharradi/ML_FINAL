@@ -7,3 +7,4 @@ langchain
 langchain_google_genai
 langchain-community
 chromadb
+langchain_experimental
