@@ -89,18 +89,21 @@ st.markdown("""
 
 # Sidebar Chat Assistant
 with st.sidebar:
-    st.header("Chat Assistant (Beta)")
+    st.header("Chat Assistant:")
     chat_input = st.text_input("Your message:")
+
     if chat_input:
         # Display the user's message in the chat container
         st.markdown(f'<div class="chat-message user-message">{chat_input}</div>', unsafe_allow_html=True)
         
-        # Process the chat input using your cached pipeline
-        ask = get_pipeline_cached("result.json")
-        answer = ask(chat_input)
+        # Show spinner while generating the assistant's response
+        with st.spinner("Thinking..."):
+            ask = get_pipeline_cached("result.json")
+            answer = ask(chat_input)
         
         # Display the assistant's response
         st.markdown(f'<div class="chat-message assistant-message">{answer}</div>', unsafe_allow_html=True)
+
 
 
 
