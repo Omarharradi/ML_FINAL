@@ -1,2 +1,65 @@
 google_local_backup/
 development/development/my-service-account-key.json
+# Byte-compiled / optimized / DLL files
+__pycache__
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs and debugging
+logs/
+*.log
+*.out
+*.err
+debug.log
+
+# Dependency management
+pip-log.txt
+pip-delete-this-directory.txt
+poetry.lock
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.pycoverage
+.cache
+nosetests.xml
+pytest_cache/
+junit.xml
+
+# mypy static type checker
+.mypy_cache/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Docker
+.dockerignore
+
+# Jupyter Notebook outputs (if using nbconvert)
+*.nbconvert.ipynb
+
+# Local environment variables
+.env
+.env.local
+*.secrets
