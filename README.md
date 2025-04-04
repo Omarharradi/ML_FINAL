@@ -17,12 +17,15 @@ This file has a supporting python file that contains all the auxiliary functions
 
 Also, the `requirements.txt` file needed for proper deployment in Streamlit Cloud. 
 
+Also, there is a folder containing the chromadb for our RAG implementation, as well as a notebook called `rag.ipynb` that created it.
+
 ### Datasets
 The proprietary data for this application is anonymized and untraceable to the assessed people. 
 
-It contains two main datasets:
+It contains the following datasets:
 - LDP_summary_anonymized.csv: CSV file containing all the assesment results
 - skills_mapping_renamed.json: Explanatory JSON of the assesment and skills involved
+- result.json: The assessment result, but in JSON format
 
 ### Presentation
 We also included in the repository the final presentation `G11 - Machine Learning - Final Project.pdf`
