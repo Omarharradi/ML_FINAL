@@ -13,12 +13,14 @@ import os
 
 
 
-def get_filtered_df(df, selected_dashboards, selected_positions):
+def get_filtered_df(df, selected_dashboards, selected_positions, selected_individuals):
     filtered = df.copy()
     if selected_dashboards:
         filtered = filtered[filtered["# Dashboard"].isin(selected_dashboards)]
     if selected_positions:
         filtered = filtered[filtered["Position"].isin(selected_positions)]
+    if selected_individuals:
+        filtered = filtered[filtered["Leader"].isin(selected_individuals)]
     return filtered
 
 
@@ -159,6 +161,9 @@ def radar_chart_plotly(dashboard, df, skills_mapping):
         skills = mapping.get(cat, [])
         avg_scores[cat] = [df.loc[df['# Dashboard'] == dashboard, skill].mean()
                            for skill in skills if skill in df.columns]
+        
+
+    summary_stats["skill_scores"] = avg_scores
 
     fig = make_subplots(
         rows=1, cols=len(categories),
@@ -516,3 +521,39 @@ def display_insight(unique_key, build_func, lis_data, llm, expander_title=None):
         title = expander_title if expander_title else f"Insights for {unique_key}"
         with st.expander(title, expanded=True):
             st.info(st.session_state["insights"][unique_key])
+
+
+def dynamic_sidebar_filters(df):
+    """Render dynamic sidebar filters and return the filtered DataFrame + current selections."""
+    with st.sidebar:
+        st.header("Filters")
+
+        # 1. Dashboard filter (no dependencies at this point)
+        all_dashboards = sorted(df["# Dashboard"].dropna().unique())
+        selected_dashboards = st.multiselect("Select Dashboard(s)", all_dashboards)
+
+        # 2. Filter DataFrame based on selected dashboards (if any)
+        df_dash_filtered = df[df["# Dashboard"].isin(selected_dashboards)] if selected_dashboards else df
+
+        # 3. Position filter based on dashboards
+        position_options = sorted(df_dash_filtered["Position"].dropna().unique()) if "Position" in df.columns else []
+        selected_positions = st.multiselect("Select Position(s)", position_options)
+
+        # 4. Further filter DataFrame based on positions
+        df_pos_filtered = df_dash_filtered[df_dash_filtered["Position"].isin(selected_positions)] if selected_positions else df_dash_filtered
+
+        # 5. Individual filter based on dashboards + positions
+        individual_options = sorted(df_pos_filtered["Leader"].dropna().unique()) if "Leader" in df.columns else []
+        selected_individuals = st.multiselect("Select Leader(s)", individual_options)
+
+    # --- Final filtering: apply all selected filters together ---
+    df_filtered = df.copy()
+
+    if selected_dashboards:
+        df_filtered = df_filtered[df_filtered["# Dashboard"].isin(selected_dashboards)]
+    if selected_positions:
+        df_filtered = df_filtered[df_filtered["Position"].isin(selected_positions)]
+    if selected_individuals:
+        df_filtered = df_filtered[df_filtered["Leader"].isin(selected_individuals)]
+
+    return df_filtered, selected_dashboards, selected_positions, selected_individuals

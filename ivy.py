@@ -19,7 +19,7 @@ import inspect
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
 
-from utils import get_filtered_df, build_donut_chart, build_histogram, build_polar_chart, build_box_plot, radar_chart_plotly, get_insights_chart, initialize_pipeline, display_insight
+from utils import get_filtered_df, build_donut_chart, build_histogram, build_polar_chart, build_box_plot, radar_chart_plotly, get_insights_chart, initialize_pipeline, display_insight, dynamic_sidebar_filters
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -36,6 +36,8 @@ st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
 # Load data
 df = pd.read_csv('LDP_summary_anonymized.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
+df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
+
 with open("skills_mapping_renamed.json", "r") as f:
     skills_mapping = json.load(f)
 
@@ -61,10 +63,14 @@ This app displays interactive visualizations based on overall leadership compete
 """)
 
 # Sidebar filters and chat
-with st.sidebar:
-    st.header("Filters")
-    selected_dashboards = st.multiselect("Select Dashboard(s)", sorted(df["# Dashboard"].unique()))
-    selected_positions = st.multiselect("Select Position(s)", sorted(df["Position"].unique())) if "Position" in df.columns else []
+#with st.sidebar:
+  #  st.header("Filters")
+   # selected_dashboards = st.multiselect("Select Dashboard(s)", sorted(df["# Dashboard"].unique()))
+   # selected_positions = st.multiselect("Select Position(s)", sorted(df["Position"].unique())) if "Position" in df.columns else []
+   # selected_individuals = st.multiselect("Select Leader(s)", sorted(df["Leader"].unique())) if "Leader" in df.columns else []
+
+df_filtered, selected_dashboards, selected_positions, selected_individuals = dynamic_sidebar_filters(df)
+
 
 # Custom CSS for chat styling (include only if not already present)
 st.markdown("""
@@ -108,7 +114,7 @@ with st.sidebar:
 
 
 # Filter data
-filtered_df = get_filtered_df(df, selected_dashboards, selected_positions)
+filtered_df = get_filtered_df(df, selected_dashboards, selected_positions, selected_individuals)
 lis_data = filtered_df['LIS']
 
 # Build charts using utils package
@@ -126,6 +132,11 @@ def get_llm():
     return ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest")
 
 llm = get_llm()
+
+# Main page layout
+st.header("All Leaders")
+st.dataframe(filtered_df[["# Dashboard", "Leader", "Email"]].dropna().reset_index(drop=True))
+
 
 # Main page layout
 st.header("Overall Results")
@@ -163,6 +174,7 @@ if unique_dashboards:
 
     st.plotly_chart(fig_radar, use_container_width=True)
     display_insight("radar", radar_chart_plotly, radar_stats, llm, "Insights for Radar Chart")
+    print(radar_stats)
 
 else:
     st.write("No data available for the selected filters.")
