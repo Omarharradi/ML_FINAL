@@ -9,6 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 import streamlit as st  
 import plotly.express as px
 import os
+import base64
 
 
 
@@ -523,9 +524,29 @@ def display_insight(unique_key, build_func, lis_data, llm, expander_title=None):
             st.info(st.session_state["insights"][unique_key])
 
 
+def get_image_base64(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+
 def dynamic_sidebar_filters(df):
     """Render dynamic sidebar filters and return the filtered DataFrame + current selections."""
     with st.sidebar:
+        # --- Logo section with base64 HTML ---
+        nesma_base64 = get_image_base64("assets/nesma.png")
+        ivy_base64 = get_image_base64("assets/Ivy Logo copy.png")
+
+        st.markdown(f"""
+            <div style="padding-top: 10px; padding-bottom: -5px;">
+                <div style="display: flex; justify-content: start; align-items: center; gap: 10px;">
+                    <img src="data:image/png;base64,{nesma_base64}" alt="Nesma Logo" width="120" style="vertical-align: middle;">
+                    <img src="data:image/png;base64,{ivy_base64}" alt="Ivy Logo" width="120" style="vertical-align: middle;">
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
         st.header("Filters")
 
         # 1. Dashboard filter (no dependencies at this point)

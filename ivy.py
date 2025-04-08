@@ -34,7 +34,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CR
 st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
 
 # Load data
-df = pd.read_csv('LDP_summary_anonymized.csv')
+df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
 
@@ -135,7 +135,7 @@ llm = get_llm()
 
 # Main page layout
 st.header("All Leaders")
-st.dataframe(filtered_df[["# Dashboard", "Leader", "Email"]].dropna().reset_index(drop=True))
+st.dataframe(filtered_df[["# Dashboard", "Leader", "Email", 'LIS']].dropna().reset_index(drop=True))
 
 
 # Main page layout
