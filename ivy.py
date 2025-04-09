@@ -95,9 +95,9 @@ st.markdown("""
 
 # Sidebar Chat Assistant
 with st.sidebar:
-    st.markdown("---")
-    st.markdown("### Navigation")
-    st.page_link("pages/resources.py", label="🔁 Resources")
+  #  st.markdown("---")
+   # st.markdown("### Navigation")
+   # st.page_link("pages/resources.py", label="🔁 Resources")
 
     st.header("Chat Assistant:")
     chat_input = st.text_input("Your message:")
