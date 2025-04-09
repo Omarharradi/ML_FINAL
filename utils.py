@@ -138,33 +138,24 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-def radar_chart_plotly(dashboard, df, skills_mapping):
-    ''' 
-    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardized metric to compare all individuals.
-    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
+def radar_chart_plotly(dashboard, leader, df, skills_mapping):
+    '''
+    Compare average dashboard skill scores and individual leader's skill scores.
     '''
     mapping = skills_mapping.get(dashboard, {})
     categories = ['Critical Skills', 'Necessary', 'Beneficial Skills']
 
-    avg_scores = {}
-    summary_stats = {"dashboard": dashboard, "skill_scores": {}}
-
-    # Define unique colors for each category (up to 3 categories in your case)
-    color_palette = px.colors.qualitative.Pastel
-    category_colors = {
-        cat: color_palette[i % len(color_palette)]
-        for i, cat in enumerate(categories)
+    summary_stats = {
+        "dashboard": dashboard,
+        "leader": leader,
+        "skill_scores": {}
     }
 
-    avg_scores = {}
-    for cat in categories:
-        skills = mapping.get(cat, [])
-        avg_scores[cat] = [df.loc[df['# Dashboard'] == dashboard, skill].mean()
-                           for skill in skills if skill in df.columns]
-        
-
-    summary_stats["skill_scores"] = avg_scores
+    color_palette = px.colors.qualitative.Pastel
+    category_colors = {
+        "Average": color_palette[0],
+        "Leader": color_palette[1]
+    }
 
     fig = make_subplots(
         rows=1, cols=len(categories),
@@ -172,18 +163,24 @@ def radar_chart_plotly(dashboard, df, skills_mapping):
         subplot_titles=[f"{cat}" for cat in categories],
     )
 
-    # Set consistent radial axis settings
     radial_range = [0, 100]
     tickvals = [0, 20, 40, 60, 80, 100]
-    ticktext = ["0", "20", "40", "60", "80", "100"]
 
     for i, cat in enumerate(categories):
-        scores = avg_scores[cat]
-        if not scores:
+        skills = mapping.get(cat, [])
+        if not skills:
             continue
-        skills = mapping[cat]
-        scores = np.array(scores)
-        scores_closed = np.concatenate((scores, [scores[0]]))
+
+        avg_scores = [df.loc[df['# Dashboard'] == dashboard, skill].mean() for skill in skills if skill in df.columns]
+        leader_scores = [df.loc[(df['# Dashboard'] == dashboard) & (df['Leader'] == leader), skill].values[0]
+                         if skill in df.columns else None for skill in skills]
+
+        summary_stats["skill_scores"][cat] = {
+            "average": avg_scores,
+            "leader": leader_scores
+        }
+
+        # Format skill names for radial labels
         formatted_skills = [
             skill.replace(" ", "<br>").replace("-", "<br>") if "&" not in skill
             else skill.replace(" &", "&").replace("-", "<br>").replace(" ", "<br>").replace("&", " &")
@@ -191,48 +188,55 @@ def radar_chart_plotly(dashboard, df, skills_mapping):
         ]
         skills_closed = formatted_skills + [formatted_skills[0]]
 
-        # Dynamically set rotation angle based on number of edges
-        n_skills = len(skills)
-        rotation = 45 if n_skills == 4 else 0 if n_skills == 5 else 0
+        # Close the loop for radar plot
+        avg_scores_closed = np.concatenate((avg_scores, [avg_scores[0]]))
+        leader_scores_closed = np.concatenate((leader_scores, [leader_scores[0]]))
 
+        # Add average trace
         fig.add_trace(
             go.Scatterpolar(
-                r=scores_closed,
+                r=avg_scores_closed,
                 theta=skills_closed,
                 fill='toself',
-                mode='markers+lines',
-                name=cat,
-                marker=dict(color=category_colors[cat])
+                mode='lines+markers',
+                name='Average',
+                marker=dict(color=category_colors["Average"])
             ),
             row=1, col=i+1
         )
 
+        # Add leader trace
+        fig.add_trace(
+            go.Scatterpolar(
+                r=leader_scores_closed,
+                theta=skills_closed,
+                fill='toself',
+                mode='lines+markers',
+                name='Leader',
+                marker=dict(color=category_colors["Leader"])
+            ),
+            row=1, col=i+1
+        )
+
+        # Update radar settings
         fig.update_polars(
             dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=radial_range,
-                    tickvals=tickvals,
-                    ticktext=ticktext,
-                    showline=True
-                ),
-                angularaxis=dict(
-                    rotation=rotation,
-                    tickfont=dict(size=10)
-                )
+                radialaxis=dict(visible=True, range=radial_range, tickvals=tickvals, showline=True),
+                angularaxis=dict(rotation=0, tickfont=dict(size=10))
             ),
             row=1, col=i+1
         )
 
     fig.update_layout(
-        title_text=f"Radar Chart of Average Skill Scores for Dashboard {dashboard}",
-        showlegend=False,
+        title_text=f"Radar Chart: {leader} vs Dashboard Avg ({dashboard})",
+        showlegend=True,
         width=350 * len(categories),
         height=500,
         margin=dict(t=100, b=50, l=50, r=50)
     )
 
     return fig, summary_stats
+
 
 
 

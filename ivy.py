@@ -95,6 +95,10 @@ st.markdown("""
 
 # Sidebar Chat Assistant
 with st.sidebar:
+    st.markdown("---")
+    st.markdown("### Navigation")
+    st.page_link("pages/resources.py", label="🔁 Resources")
+
     st.header("Chat Assistant:")
     chat_input = st.text_input("Your message:")
 
@@ -168,14 +172,19 @@ with col4_row:
 st.markdown("---")
 st.subheader("Radar Chart")
 unique_dashboards = sorted(filtered_df["# Dashboard"].unique())
+
 if unique_dashboards:
-    selected_radar = st.selectbox("Select Dashboard for Radar Chart", unique_dashboards)
-    fig_radar, radar_stats = radar_chart_plotly(selected_radar, filtered_df, skills_mapping)
+    selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards)
+
+    dashboard_leaders = sorted(filtered_df[filtered_df["# Dashboard"] == selected_dashboard]["Leader"].unique())
+    selected_leader = st.selectbox("Select Leader", dashboard_leaders)
+
+    fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, filtered_df, skills_mapping)
 
     st.plotly_chart(fig_radar, use_container_width=True)
     display_insight("radar", radar_chart_plotly, radar_stats, llm, "Insights for Radar Chart")
     print(radar_stats)
-
 else:
     st.write("No data available for the selected filters.")
+
 
