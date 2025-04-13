@@ -40,9 +40,10 @@ load_dotenv()
 st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
 
 # Set API keys from Streamlit secrets
-os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-
+#os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+GOOGLE_API_KEY='AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
+GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 
 # Load data and skills mapping
 df = pd.read_csv('LDP_summary.csv')

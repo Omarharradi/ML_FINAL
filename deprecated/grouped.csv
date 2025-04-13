@@ -1,0 +1,367 @@
+Leader,Skill,Avg_Score,Below_Threshold_Count,Skill_category
+AL MILAIFY SAMI,Accountability,78.0,True,Critical
+AL MILAIFY SAMI,Building Effective Teams,80.0,False,Beneficial
+AL MILAIFY SAMI,Emotional Intelligence,74.0,True,EQ
+AL MILAIFY SAMI,Negotiating Ability,73.0,False,Beneficial
+AL MILAIFY SAMI,Recruitment & Hiring,87.0,False,Necessary
+ALATTAS HASSAN,Accountability,70.0,True,Critical
+ALATTAS HASSAN,Calculated Risk-Taking,71.0,False,Beneficial
+ALATTAS HASSAN,Emotional Intelligence,72.0,True,EQ
+ALATTAS HASSAN,Fairness,70.0,False,Beneficial
+ALATTAS HASSAN,Information Gathering & Analysis,76.0,True,Critical
+ALQUDAH OBIEDA,Accountability,80.0,True,Critical
+ALQUDAH OBIEDA,Change Management,57.0,True,Critical
+ALQUDAH OBIEDA,Communication Skills,80.0,True,Critical
+ALQUDAH OBIEDA,Emotional Intelligence,67.0,True,EQ
+ALQUDAH OBIEDA,Information Gathering & Analysis,69.0,True,Necessary
+ALQUDAH OBIEDA,Measuring & Evaluating Results,69.0,True,Necessary
+ALQUDAH OBIEDA,Negotiating Ability,59.0,True,Beneficial
+ALQUDAH OBIEDA,Problem-Solving,54.0,True,Critical
+ALQUDAH OBIEDA,Project Management,82.0,True,Critical
+ALZBOON ODEH,Accountability,55.0,True,Critical
+ALZBOON ODEH,Change Management,73.0,True,Critical
+ALZBOON ODEH,Communication Skills,74.0,True,Critical
+ALZBOON ODEH,Emotional Intelligence,66.0,True,EQ
+ALZBOON ODEH,Problem-Solving,80.0,True,Critical
+ALZBOON ODEH,Project Management,83.0,True,Critical
+AZZAM AHMED,Accountability,78.0,True,Critical
+AZZAM AHMED,Communication Skills,66.0,True,Critical
+AZZAM AHMED,Emotional Intelligence,81.0,True,EQ
+AZZAM AHMED,Measuring & Evaluating Results,75.0,False,Necessary
+AZZAM AHMED,Negotiating Ability,70.0,False,Beneficial
+Abou Mrad Ghassan,Building Effective Teams,67.0,True,Necessary
+Abou Mrad Ghassan,Emotional Intelligence,75.0,True,EQ
+Abou Mrad Ghassan,Innovative Mindset,74.0,False,Beneficial
+Abou Mrad Ghassan,Negotiating Ability,78.0,False,Beneficial
+Abou Mrad Ghassan,Recruitment & Hiring,73.0,False,Beneficial
+Aboul Hosn Rami,Accountability,82.0,True,Critical
+Aboul Hosn Rami,Change Management,76.0,True,Critical
+Aboul Hosn Rami,Communication Skills,72.0,True,Critical
+Aboul Hosn Rami,Emotional Intelligence,72.0,True,EQ
+Aboul Hosn Rami,Recruitment & Hiring,61.0,False,Beneficial
+Abu Ahmadeh Ali,Accountability,58.0,True,Critical
+Abu Ahmadeh Ali,Building Effective Teams,69.0,True,Necessary
+Abu Ahmadeh Ali,Change Management,47.0,True,Critical
+Abu Ahmadeh Ali,Communication Skills,70.0,True,Critical
+Abu Ahmadeh Ali,Emotional Intelligence,56.0,True,EQ
+Abu Ahmadeh Ali,Negotiating Ability,59.0,True,Beneficial
+Abu Ahmadeh Ali,Problem-Solving,84.0,True,Critical
+Abu Ahmadeh Ali,Project Management,83.0,True,Critical
+Abu Ahmadeh Ali,Recruitment & Hiring,59.0,True,Beneficial
+Abu Ahmadeh Ali,Resilience/Hardiness,54.0,True,Beneficial
+Abu Raidah Abdullah,Accountability,73.0,True,Critical
+Abu Raidah Abdullah,Communication Skills,78.0,True,Critical
+Abu Raidah Abdullah,Emotional Intelligence,70.0,True,EQ
+Abu Raidah Abdullah,Organization Skills,79.0,True,Critical
+Abu Raidah Abdullah,Recruitment & Hiring,56.0,True,Beneficial
+Afzal Rana,Accountability,82.0,True,Critical
+Afzal Rana,Communication Skills,84.0,True,Critical
+Afzal Rana,Emotional Intelligence,74.0,True,EQ
+Afzal Rana,Problem-Solving,70.0,True,Critical
+Afzal Rana,Recruitment & Hiring,62.0,False,Beneficial
+Al Dakhil Mohammed,Accountability,73.0,True,Critical
+Al Dakhil Mohammed,Building Effective Teams,59.0,True,Beneficial
+Al Dakhil Mohammed,Communication Skills,56.0,True,Necessary
+Al Dakhil Mohammed,Conflict Management,61.0,True,Necessary
+Al Dakhil Mohammed,Emotional Intelligence,62.0,True,EQ
+Al Dakhil Mohammed,Measuring & Evaluating Results,75.0,True,Critical
+Al Dakhil Mohammed,Project Management,73.0,True,Critical
+Alabdullah Qassem,Accountability,75.0,True,Critical
+Alabdullah Qassem,Change Management,64.0,True,Necessary
+Alabdullah Qassem,Communication Skills,62.0,True,Critical
+Alabdullah Qassem,Conflict Management,60.0,True,Critical
+Alabdullah Qassem,Emotional Intelligence,60.0,True,EQ
+Alabdullah Qassem,Emotional Self-awareness,34.0,True,Beneficial
+Alabdullah Qassem,Information Gathering & Analysis,70.0,True,Critical
+Alabdullah Qassem,Listening Skills,58.0,True,Necessary
+Alabdullah Qassem,Negotiating Ability,69.0,True,Necessary
+Aldarazi Ahmad,Accountability,70.0,True,Critical
+Aldarazi Ahmad,Change Management,86.0,False,Necessary
+Aldarazi Ahmad,Emotional Intelligence,76.0,True,EQ
+Aldarazi Ahmad,Measuring & Evaluating Results,76.0,True,Critical
+Aldarazi Ahmad,Recruitment & Hiring,83.0,False,Beneficial
+Alhemaid Aisha,Building Effective Teams,86.0,False,Necessary
+Alhemaid Aisha,Change Management,86.0,False,Critical
+Alhemaid Aisha,Emotional Intelligence,81.0,True,EQ
+Alhemaid Aisha,Negotiating Ability,84.0,False,Beneficial
+Alhemaid Aisha,Problem-Solving,90.0,False,Critical
+Aljishi Salam,Charisma,74.0,False,Beneficial
+Aljishi Salam,Communication Skills,68.0,True,Critical
+Aljishi Salam,Emotional Intelligence,79.0,True,EQ
+Aljishi Salam,Emotional Self-awareness,72.0,False,Beneficial
+Aljishi Salam,Listening Skills,66.0,True,Necessary
+Aljudaibi Sabri,Accountability,72.0,True,Critical
+Aljudaibi Sabri,Communication Skills,80.0,True,Critical
+Aljudaibi Sabri,Emotional Intelligence,77.0,True,EQ
+Aljudaibi Sabri,Negotiating Ability,59.0,True,Beneficial
+Aljudaibi Sabri,Problem-Solving,66.0,True,Critical
+Aljudaibi Sabri,Recruitment & Hiring,27.0,True,Beneficial
+Alkhamis Zuhair,Conflict Management,74.0,False,Necessary
+Alkhamis Zuhair,Emotional Intelligence,75.0,True,EQ
+Alkhamis Zuhair,Measuring & Evaluating Results,88.0,False,Necessary
+Alkhamis Zuhair,Monitoring Employee Performance,78.0,False,Beneficial
+Alkhamis Zuhair,Negotiating Ability,78.0,False,Beneficial
+Alolaywi Mohammed,Coaching & Mentoring,81.0,True,Critical
+Alolaywi Mohammed,Communication Skills,76.0,True,Critical
+Alolaywi Mohammed,Conflict Management,56.0,True,Necessary
+Alolaywi Mohammed,Emotional Intelligence,60.0,True,EQ
+Alolaywi Mohammed,Emotional Self-awareness,32.0,True,Beneficial
+Alolaywi Mohammed,Goal Setting,83.0,True,Critical
+Alolaywi Mohammed,Listening Skills,54.0,True,Necessary
+Alolaywi Mohammed,Organization Skills,58.0,True,Necessary
+Alolaywi Mohammed,Training & Onboarding,70.0,True,Critical
+Alrabaya Khaled,Conflict Management,89.0,False,Necessary
+Alrabaya Khaled,Emotional Intelligence,79.0,True,EQ
+Alrabaya Khaled,Innovative Mindset,91.0,False,Beneficial
+Alrabaya Khaled,Recruitment & Hiring,81.0,False,Beneficial
+Alrabaya Khaled,Resilience/Hardiness,86.0,False,Beneficial
+Alsamail Hassan,Accountability,65.0,True,Critical
+Alsamail Hassan,Change Management,69.0,True,Necessary
+Alsamail Hassan,Communication Skills,70.0,True,Critical
+Alsamail Hassan,Conflict Management,40.0,True,Necessary
+Alsamail Hassan,Emotional Intelligence,66.0,True,EQ
+Alsamail Hassan,Information Gathering & Analysis,64.0,True,Critical
+Alsamail Hassan,Measuring & Evaluating Results,54.0,True,Necessary
+Alsamail Hassan,Monitoring Employee Performance,37.0,True,Beneficial
+Alsamail Hassan,Negotiating Ability,48.0,True,Beneficial
+Alshareef Mohammed,Emotional Intelligence,83.0,True,EQ
+Alshareef Mohammed,Goal Setting,100.0,False,Critical
+Alshareef Mohammed,Information Gathering & Analysis,98.0,False,Critical
+Alshareef Mohammed,Negotiating Ability,94.0,False,Critical
+Alshareef Mohammed,Project Management,98.0,False,Necessary
+Alshehri Faisal,Accountability,67.0,True,Critical
+Alshehri Faisal,Building Effective Teams,76.0,False,Necessary
+Alshehri Faisal,Conflict Management,71.0,False,Necessary
+Alshehri Faisal,Emotional Intelligence,79.0,True,EQ
+Alshehri Faisal,Negotiating Ability,60.0,False,Beneficial
+Alsultan Salsabeel,Coaching & Mentoring,66.0,True,Critical
+Alsultan Salsabeel,Communication Skills,46.0,True,Critical
+Alsultan Salsabeel,Emotional Intelligence,58.0,True,EQ
+Alsultan Salsabeel,Emotional Self-awareness,22.0,True,Beneficial
+Alsultan Salsabeel,Goal Setting,75.0,True,Critical
+Alsultan Salsabeel,Listening Skills,40.0,True,Necessary
+Alsultan Salsabeel,Organization Skills,65.0,True,Necessary
+Amani Alali,Building Effective Teams,88.0,False,Necessary
+Amani Alali,Change Management,83.0,False,Beneficial
+Amani Alali,Conflict Management,89.0,False,Necessary
+Amani Alali,Emotional Intelligence,85.0,False,EQ
+Amani Alali,Listening Skills,86.0,False,Necessary
+Bakir Maya,Accountability,82.0,True,Critical
+Bakir Maya,Building Effective Teams,83.0,False,Beneficial
+Bakir Maya,Change Management,83.0,False,Necessary
+Bakir Maya,Emotional Intelligence,74.0,True,EQ
+Bakir Maya,Resilience/Hardiness,78.0,False,Beneficial
+Bayoumi Mahmoud,Building Effective Teams,72.0,False,Necessary
+Bayoumi Mahmoud,Change Management,63.0,True,Critical
+Bayoumi Mahmoud,Communication Skills,80.0,True,Critical
+Bayoumi Mahmoud,Conflict Management,67.0,True,Necessary
+Bayoumi Mahmoud,Emotional Intelligence,77.0,True,EQ
+Bshara Ayham,Accountability,67.0,True,Critical
+Bshara Ayham,Building Effective Teams,69.0,True,Necessary
+Bshara Ayham,Change Management,46.0,True,Critical
+Bshara Ayham,Communication Skills,72.0,True,Critical
+Bshara Ayham,Conflict Management,47.0,True,Necessary
+Bshara Ayham,Emotional Intelligence,62.0,True,EQ
+Bshara Ayham,Information Gathering & Analysis,64.0,True,Necessary
+Bshara Ayham,Negotiating Ability,53.0,True,Beneficial
+Bshara Ayham,Problem-Solving,74.0,True,Critical
+Bshara Ayham,Project Management,73.0,True,Critical
+Charbel Kamal,Building Effective Teams,74.0,False,Necessary
+Charbel Kamal,Conflict Management,83.0,False,Necessary
+Charbel Kamal,Emotional Intelligence,87.0,False,EQ
+Charbel Kamal,Measuring & Evaluating Results,88.0,False,Necessary
+Charbel Kamal,Negotiating Ability,84.0,False,Beneficial
+Chedid Elie,Conflict Management,51.0,True,Necessary
+Chedid Elie,Emotional Intelligence,71.0,True,EQ
+Chedid Elie,Monitoring Employee Performance,77.0,False,Necessary
+Chedid Elie,Negotiating Ability,64.0,False,Beneficial
+Chedid Elie,Recruitment & Hiring,73.0,False,Beneficial
+Chemayssani Ali,Building Effective Teams,78.0,False,Necessary
+Chemayssani Ali,Change Management,79.0,True,Critical
+Chemayssani Ali,Emotional Intelligence,78.0,True,EQ
+Chemayssani Ali,Innovative Mindset,78.0,False,Beneficial
+Chemayssani Ali,Resilience/Hardiness,78.0,False,Beneficial
+Daou Fares,Accountability,77.0,True,Critical
+Daou Fares,Communication Skills,80.0,True,Critical
+Daou Fares,Conflict Management,56.0,True,Necessary
+Daou Fares,Emotional Intelligence,72.0,True,EQ
+Daou Fares,Project Management,83.0,True,Critical
+EL Chami Hassan,Accountability,60.0,True,Critical
+EL Chami Hassan,Change Management,64.0,True,Critical
+EL Chami Hassan,Coaching & Mentoring,57.0,True,Beneficial
+EL Chami Hassan,Communication Skills,5.0,True,Critical
+EL Chami Hassan,Emotional Intelligence,63.0,True,EQ
+EL Chami Hassan,Negotiating Ability,59.0,True,Beneficial
+EL Chami Hassan,Project Management,84.0,True,Critical
+Geara Andre,Accountability,82.0,True,Critical
+Geara Andre,Change Management,64.0,True,Critical
+Geara Andre,Emotional Intelligence,77.0,True,EQ
+Geara Andre,Measuring & Evaluating Results,73.0,False,Necessary
+Geara Andre,Negotiating Ability,75.0,False,Beneficial
+Ghazi Ibrahim Ayman,Emotional Intelligence,72.0,True,EQ
+Ghazi Ibrahim Ayman,Information Gathering & Analysis,84.0,True,Critical
+Ghazi Ibrahim Ayman,Innovative Mindset,78.0,False,Beneficial
+Ghazi Ibrahim Ayman,Recruitment & Hiring,75.0,False,Beneficial
+Ghazi Ibrahim Ayman,Supportiveness,77.0,False,Beneficial
+Gilani Syed,Conflict Management,66.0,True,Necessary
+Gilani Syed,Emotional Intelligence,70.0,True,EQ
+Gilani Syed,Measuring & Evaluating Results,59.0,True,Necessary
+Gilani Syed,Organization Skills,79.0,True,Critical
+Gilani Syed,Project Management,84.0,True,Critical
+Haidar Mazen,Accountability,93.0,False,Critical
+Haidar Mazen,Conflict Management,76.0,False,Necessary
+Haidar Mazen,Emotional Intelligence,88.0,False,EQ
+Haidar Mazen,Negotiating Ability,84.0,False,Beneficial
+Haidar Mazen,Supportiveness,90.0,False,Beneficial
+Harb Fayssal,Accountability,77.0,True,Critical
+Harb Fayssal,Building Effective Teams,64.0,True,Necessary
+Harb Fayssal,Communication Skills,68.0,True,Critical
+Harb Fayssal,Emotional Intelligence,76.0,True,EQ
+Harb Fayssal,Negotiating Ability,43.0,True,Beneficial
+Harb Fayssal,Organization Skills,74.0,True,Critical
+Harb Fayssal,Project Management,78.0,True,Critical
+Harb Fayssal,Recruitment & Hiring,59.0,True,Beneficial
+Hawilo Mahmoud,Accountability,77.0,True,Critical
+Hawilo Mahmoud,Communication Skills,72.0,True,Critical
+Hawilo Mahmoud,Emotional Intelligence,70.0,True,EQ
+Hawilo Mahmoud,Negotiating Ability,70.0,False,Beneficial
+Hawilo Mahmoud,Recruitment & Hiring,57.0,True,Beneficial
+Jamal Rami,Accountability,72.0,True,Critical
+Jamal Rami,Building Effective Teams,86.0,False,Necessary
+Jamal Rami,Conflict Management,86.0,False,Necessary
+Jamal Rami,Emotional Intelligence,77.0,True,EQ
+Jamal Rami,Negotiating Ability,83.0,False,Beneficial
+Karkera Sudhir,Accountability,68.0,True,Critical
+Karkera Sudhir,Conflict Management,57.0,True,Necessary
+Karkera Sudhir,Emotional Intelligence,72.0,True,EQ
+Karkera Sudhir,Information Gathering & Analysis,81.0,True,Critical
+Karkera Sudhir,Measuring & Evaluating Results,80.0,True,Critical
+Karkera Sudhir,Negotiating Ability,66.0,True,Necessary
+Khater Mahmoud,Accountability,83.0,True,Critical
+Khater Mahmoud,Change Management,73.0,True,Critical
+Khater Mahmoud,Emotional Intelligence,68.0,True,EQ
+Khater Mahmoud,Measuring & Evaluating Results,56.0,True,Necessary
+Khater Mahmoud,Problem-Solving,70.0,True,Critical
+Khayyat Amro,Accountability,68.0,True,Critical
+Khayyat Amro,Change Management,57.0,True,Critical
+Khayyat Amro,Communication Skills,72.0,True,Critical
+Khayyat Amro,Conflict Management,69.0,True,Necessary
+Khayyat Amro,Emotional Intelligence,72.0,True,EQ
+Khayyat Amro,Information Gathering & Analysis,69.0,True,Necessary
+Khayyat Amro,Problem-Solving,84.0,True,Critical
+Malkawi Mohammad,Accountability,82.0,True,Critical
+Malkawi Mohammad,Building Effective Teams,63.0,True,Necessary
+Malkawi Mohammad,Change Management,76.0,True,Critical
+Malkawi Mohammad,Communication Skills,72.0,True,Critical
+Malkawi Mohammad,Conflict Management,59.0,True,Necessary
+Malkawi Mohammad,Emotional Intelligence,69.0,True,EQ
+Malkawi Mohammad,Measuring & Evaluating Results,59.0,True,Necessary
+Malkawi Mohammad,Negotiating Ability,49.0,True,Beneficial
+Mendoza Ronnelio,Accountability,43.0,True,Critical
+Mendoza Ronnelio,Building Effective Teams,66.0,True,Necessary
+Mendoza Ronnelio,Change Management,67.0,True,Critical
+Mendoza Ronnelio,Conflict Management,53.0,True,Necessary
+Mendoza Ronnelio,Emotional Intelligence,72.0,True,EQ
+Mendoza Ronnelio,Negotiating Ability,35.0,True,Beneficial
+Mikati Ibrahim,Accountability,63.0,True,Critical
+Mikati Ibrahim,Conflict Management,76.0,False,Necessary
+Mikati Ibrahim,Emotional Intelligence,75.0,True,EQ
+Mikati Ibrahim,Negotiating Ability,63.0,False,Beneficial
+Mikati Ibrahim,Resilience/Hardiness,66.0,False,Beneficial
+Mocled Ralph,Accountability,82.0,True,Critical
+Mocled Ralph,Change Management,71.0,True,Critical
+Mocled Ralph,Emotional Intelligence,58.0,True,EQ
+Mocled Ralph,Innovative Mindset,80.0,False,Beneficial
+Mocled Ralph,Measuring & Evaluating Results,66.0,True,Necessary
+Mohammad Hallab,Accountability,65.0,True,Critical
+Mohammad Hallab,Building Effective Teams,40.0,True,Necessary
+Mohammad Hallab,Communication Skills,78.0,True,Critical
+Mohammad Hallab,Emotional Intelligence,65.0,True,EQ
+Mohammad Hallab,Measuring & Evaluating Results,41.0,True,Necessary
+Mohammad Hallab,Monitoring Employee Performance,65.0,True,Necessary
+Mohammad Hallab,Negotiating Ability,48.0,True,Beneficial
+Mohammad Hallab,Organization Skills,80.0,True,Critical
+Mohammad Hallab,Project Management,83.0,True,Critical
+Najjar Paul,Change Management,76.0,True,Critical
+Najjar Paul,Communication Skills,80.0,True,Critical
+Najjar Paul,Emotional Intelligence,66.0,True,EQ
+Najjar Paul,Negotiating Ability,53.0,True,Beneficial
+Najjar Paul,Project Management,76.0,True,Critical
+Owida Mohamed,Accountability,67.0,True,Critical
+Owida Mohamed,Change Management,50.0,True,Critical
+Owida Mohamed,Communication Skills,74.0,True,Critical
+Owida Mohamed,Emotional Intelligence,66.0,True,EQ
+Owida Mohamed,Measuring & Evaluating Results,66.0,True,Necessary
+Owida Mohamed,Problem-Solving,70.0,True,Critical
+Owida Mohamed,Project Management,66.0,True,Critical
+Samarah Senan,Accountability,75.0,True,Critical
+Samarah Senan,Emotional Intelligence,72.0,True,EQ
+Samarah Senan,Organization Skills,74.0,True,Critical
+Samarah Senan,Problem-Solving,74.0,True,Critical
+Samarah Senan,Project Management,84.0,True,Critical
+Shadid George,Accountability,58.0,True,Critical
+Shadid George,Building Effective Teams,64.0,True,Necessary
+Shadid George,Communication Skills,78.0,True,Critical
+Shadid George,Emotional Intelligence,71.0,True,EQ
+Shadid George,Organization Skills,81.0,True,Critical
+Shekhani Wissam,Change Management,81.0,True,Critical
+Shekhani Wissam,Conflict Management,86.0,False,Necessary
+Shekhani Wissam,Emotional Intelligence,79.0,True,EQ
+Shekhani Wissam,Measuring & Evaluating Results,78.0,False,Necessary
+Shekhani Wissam,Negotiating Ability,69.0,False,Beneficial
+Sqair Mohammad Abusqair,Accountability,67.0,True,Critical
+Sqair Mohammad Abusqair,Communication Skills,74.0,True,Critical
+Sqair Mohammad Abusqair,Conflict Management,67.0,True,Necessary
+Sqair Mohammad Abusqair,Emotional Intelligence,70.0,True,EQ
+Sqair Mohammad Abusqair,Information Gathering & Analysis,69.0,True,Critical
+Sqair Mohammad Abusqair,Problem-Solving,80.0,True,Critical
+Suleiman Hussain,Building Effective Teams,86.0,False,Necessary
+Suleiman Hussain,Conflict Management,86.0,False,Necessary
+Suleiman Hussain,Emotional Intelligence,79.0,True,EQ
+Suleiman Hussain,Measuring & Evaluating Results,60.0,True,Necessary
+Suleiman Hussain,Recruitment & Hiring,81.0,False,Beneficial
+Taha Anwar,Accountability,67.0,True,Critical
+Taha Anwar,Change Management,64.0,True,Critical
+Taha Anwar,Communication Skills,78.0,True,Critical
+Taha Anwar,Conflict Management,57.0,True,Necessary
+Taha Anwar,Emotional Intelligence,66.0,True,EQ
+Taha Anwar,Measuring & Evaluating Results,52.0,True,Necessary
+Taha Anwar,Problem-Solving,60.0,True,Critical
+Taha Anwar,Resilience/Hardiness,56.0,True,Beneficial
+Taj Jamal,Change Management,83.0,False,Necessary
+Taj Jamal,Emotional Intelligence,72.0,True,EQ
+Taj Jamal,Measuring & Evaluating Results,75.0,False,Necessary
+Taj Jamal,Negotiating Ability,59.0,True,Critical
+Taj Jamal,Social Insight,84.0,False,Beneficial
+Therese Hakim,Accountability,68.0,True,Critical
+Therese Hakim,Emotional Intelligence,71.0,True,EQ
+Therese Hakim,Measuring & Evaluating Results,63.0,True,Critical
+Therese Hakim,Problem-Solving,80.0,True,Critical
+Therese Hakim,Recruitment & Hiring,64.0,False,Beneficial
+Thomas Abraham,Accountability,62.0,True,Critical
+Thomas Abraham,Conflict Management,57.0,True,Necessary
+Thomas Abraham,Emotional Intelligence,65.0,True,EQ
+Thomas Abraham,Problem-Solving,80.0,True,Critical
+Thomas Abraham,Recruitment & Hiring,64.0,True,Necessary
+Valera Rommel,Accountability,72.0,True,Critical
+Valera Rommel,Building Effective Teams,66.0,True,Necessary
+Valera Rommel,Change Management,79.0,True,Critical
+Valera Rommel,Communication Skills,84.0,True,Critical
+Valera Rommel,Emotional Intelligence,77.0,True,EQ
+Valera Rommel,Measuring & Evaluating Results,60.0,True,Necessary
+Valera Rommel,Negotiating Ability,55.0,True,Beneficial
+Warrier Vasudeva,Accountability,65.0,True,Critical
+Warrier Vasudeva,Emotional Intelligence,66.0,True,EQ
+Warrier Vasudeva,Problem-Solving,70.0,True,Critical
+Warrier Vasudeva,Project Management,79.0,True,Critical
+Warrier Vasudeva,Resilience/Hardiness,52.0,True,Beneficial
+Youssef Moustafa,Accountability,67.0,True,Critical
+Youssef Moustafa,Change Management,64.0,True,Critical
+Youssef Moustafa,Communication Skills,82.0,True,Critical
+Youssef Moustafa,Emotional Intelligence,70.0,True,EQ
+Youssef Moustafa,Information Gathering & Analysis,64.0,True,Necessary
+Youssef Shaher,Change Management,90.0,False,Critical
+Youssef Shaher,Communication Skills,86.0,False,Critical
+Youssef Shaher,Emotional Intelligence,79.0,True,EQ
+Youssef Shaher,Emotional Self-awareness,78.0,False,Beneficial
+Youssef Shaher,Resilience/Hardiness,92.0,False,Beneficial

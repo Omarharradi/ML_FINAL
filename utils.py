@@ -582,3 +582,205 @@ def dynamic_sidebar_filters(df):
         df_filtered = df_filtered[df_filtered["Leader"].isin(selected_individuals)]
 
     return df_filtered, selected_dashboards, selected_positions, selected_individuals
+
+
+
+
+
+# insight_charts.py
+
+
+def plot_resource_type_distribution(df):
+    """
+    Plots a stacked bar chart showing the distribution of resource types per skill category.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing 'Skill Category' and 'Resource Type' columns.
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Plotly figure object.
+    """
+    resource_type_by_category = df.groupby(['Skill Category', 'Resource Type']).size().reset_index(name='Count')
+    fig = px.bar(resource_type_by_category, x='Skill Category', y='Count', color='Resource Type',
+                 title='Distribution of Resource Types per Skill Category', barmode='stack')
+    return fig, resource_type_by_category
+
+def plot_top_skills(df, top_n=10):
+    """
+    Plots a bar chart of the top N most frequently targeted skills.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing a 'Skill' column.
+    - top_n (int): Number of top skills to display (default is 10).
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Plotly figure object.
+    """
+    skill_leader_counts = (
+        df.groupby('Skill')['Leader']
+        .nunique()
+        .sort_values(ascending=False)
+        .head(top_n)
+        .reset_index()
+        .rename(columns={'Leader': 'Leader Count'})
+    )
+
+    fig = px.bar(
+        skill_leader_counts,
+        x='Skill',
+        y='Leader Count',
+        title=f'Top {top_n} Skills by Number of Unique Leaders Assessed',
+        labels={'Leader Count': 'Number of Leaders'},
+    )
+    return fig, skill_leader_counts
+
+
+
+
+def plot_resource_distribution_by_category(df):
+    """
+    Plots a pie chart showing the distribution of total resources per skill category.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing 'Skill Category' and 'Resource Text' columns.
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Plotly figure object.
+    """
+    skill_cat_resources = df.groupby('Skill Category')['Resource Text'].count().reset_index(name='Total Resources')
+    fig = px.pie(skill_cat_resources, names='Skill Category', values='Total Resources',
+                 title='Resource Distribution by Skill Category')
+    return fig, skill_cat_resources
+
+
+
+def plot_top_resources_by_category(df, category, top_n=8):
+    # Filter by the selected resource category
+    filtered_df = df[df['Resource Type'] == category]
+
+    if filtered_df.empty:
+        print(f"No resources found for category: {category}")
+        return
+
+    # Count most frequent Resource Texts
+    top_resources = (
+        filtered_df['Resource Text']
+        .value_counts()
+        .head(top_n)
+        .reset_index()
+    )
+    top_resources.columns = ['Resource Text', 'Count']  # Explicitly rename columns
+
+    # Plot with Plotly
+    fig = px.bar(
+        top_resources,
+        x='Count',
+        y='Resource Text',
+        orientation='h',
+        title=f"Top {top_n} Most Recurrent Resources in '{category}'",
+        height=500
+    )
+
+    fig.update_layout(yaxis=dict(autorange='reversed'))  # highest at top
+    return fig, top_resources
+
+
+def plot_leaders_below_threshold(group, top_n=10, selected_skill=None):
+    """
+    Plots a vertical bar chart of the top N leaders with the most skills below threshold.
+
+    Parameters:
+    - group (pd.DataFrame): DataFrame containing 'Leader', 'Below_Threshold_Count', and 'Skill'.
+    - top_n (int): Number of top leaders to display (default is 10).
+    - selected_skill (str, optional): Specific skill to filter by. If None, shows all skills.
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Plotly figure object.
+    """
+    
+    # Filter by the selected skill (if provided)
+    if selected_skill:
+        filtered_group = group[group['Skill'] == selected_skill]
+    else:
+        filtered_group = group
+
+    # Get leaders with skills below threshold
+    leaders_below = filtered_group[filtered_group['Below_Threshold_Count'] == True]['Leader'].value_counts().reset_index()
+    leaders_below.columns = ['Leader', 'Below Threshold Count']
+
+    # Get the top N leaders with the most skills below threshold
+    leaders_below = leaders_below.head(top_n)
+
+    # Create the vertical bar chart
+    fig = px.bar(leaders_below, x='Leader', y='Below Threshold Count',
+                 title=f'Top {top_n} Leaders with the Most Skills Below Threshold',
+                 color='Below Threshold Count')
+    
+    # Update layout to make the chart vertical
+    fig.update_layout(
+        xaxis_title='Leader',
+        yaxis_title='Below Threshold Count',
+        xaxis={'tickangle': 45},  # Rotate x-axis labels for better readability
+        height=600
+    )
+    
+    return fig, leaders_below
+
+
+
+
+import pandas as pd
+import plotly.express as px
+
+def plot_top_performers_by_skill(df, skill=None, top_n=5, bar_color="#636EFA"):
+    """
+    Plots a clean bar chart showing the top N unique performers for a selected skill.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing at least 'Leader', 'Skill', and 'Score' columns.
+    - skill (str or None): Specific skill to filter by. If None, no plot is returned.
+    - top_n (int): Number of top performers to display (default is 5).
+    - bar_color (str): Hex color code for the bars (default is Plotly's gray-blue).
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Plotly figure object.
+    - top_performers_df (pd.DataFrame): DataFrame of top performers.
+    """
+    if not skill:
+        print("Please select a skill.")
+        return None, pd.DataFrame()
+
+    filtered_df = df[df['Skill'] == skill]
+
+    if filtered_df.empty:
+        print(f"No data found for skill: {skill}")
+        return None, pd.DataFrame()
+
+    # Ensure unique leaders by taking the max score per leader
+    unique_leader_scores = (
+        filtered_df.groupby('Leader', as_index=False)['Score']
+        .max()
+        .sort_values(by='Score', ascending=False)
+        .head(top_n)
+    )
+
+    fig = px.bar(
+        unique_leader_scores,
+        x='Leader',
+        y='Score',
+        title=f"Top {top_n} Performers in '{skill}'",
+        text='Score'
+    )
+
+    fig.update_traces(marker_color=bar_color, textposition='outside')
+    fig.update_layout(
+        yaxis_title='Score',
+        xaxis_title='Leader',
+        uniformtext_minsize=8,
+        uniformtext_mode='hide',
+        plot_bgcolor='white',
+        title_x=0.5,
+        margin=dict(t=60, b=40),
+    )
+
+    return fig, unique_leader_scores
