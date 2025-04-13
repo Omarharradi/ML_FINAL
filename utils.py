@@ -307,10 +307,6 @@ def get_insights_chart(lis_data, source_code, llm):
     **Chart Insights**
     - Use concise bullet points to highlight key patterns, trends, or outliers in the data.
     - Make the language natural and insightful, not robotic.
-    \n
-    **Chart Actionables**
-    - Suggest meaningful next steps or considerations based on the data.
-    - Actionables should feel strategic and helpful to someone using the chart to make decisions.
     
     Important Guidelines:
     - If a KPI, variable, or concept is not clearly defined in the DataFrame or PlotCode, do NOT guess its meaning. It may represent proprietary or internal data.
