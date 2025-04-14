@@ -1,0 +1,249 @@
+import sys
+import os
+import json
+import base64
+import numpy as np
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+# Custom utils
+from utils import (
+    get_filtered_df,
+    build_donut_chart,
+    build_histogram,
+    build_polar_chart,
+    build_box_plot,
+    radar_chart_plotly,
+    display_insight,
+    initialize_pipeline,
+    dynamic_sidebar_filters,
+    plot_resource_type_distribution,
+    plot_top_skills,
+    plot_resource_distribution_by_category,
+    plot_top_resources_by_category,
+    plot_leaders_below_threshold,
+    plot_top_performers_by_skill
+)
+
+# SQLite patch for compatibility
+try:
+    import pysqlite3
+    sys.modules["sqlite3"] = pysqlite3
+except ImportError:
+    pass
+
+# Load environment variables
+load_dotenv()
+st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
+
+# Set API keys from Streamlit secrets
+#os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+GOOGLE_API_KEY='AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
+GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
+
+# Load data and skills mapping
+df = pd.read_csv('LDP_summary.csv')
+df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
+df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
+resource=pd.read_csv('resources_summary.csv')
+
+
+with open("skills_mapping_renamed.json", "r") as f:
+    skills_mapping = json.load(f)
+
+@st.cache_resource
+def get_pipeline_cached(json_path="result.json"):
+    return initialize_pipeline(json_path)
+
+@st.cache_resource
+def get_llm():
+    return ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest")
+
+llm = get_llm()
+
+# Common filters
+df_filtered, selected_dashboards, selected_positions, selected_individuals = dynamic_sidebar_filters(df)
+filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals)
+grouped = filtered_resources.groupby(['Leader', 'Skill']).agg(
+    Score=('Score', 'last'),
+    Below_Threshold_Count=('Below Threshold', 'last'),
+    Skill_category=('Skill Category', 'last'),
+    Dashboard=('# Dashboard', 'last'),
+    Position=('Position', 'last'),
+).reset_index().rename(columns={'Dashboard': '# Dashboard'})
+
+
+df=df_filtered.copy()
+st.title("Leadership Dashboard Analysis")
+
+# ===============================
+# 1. LIS Distribution - Boxplot & Histogram
+# ===============================
+st.subheader("LIS Score Distribution")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    box_fig = px.box(df, y='LIS', title="Boxplot of LIS Scores")
+    st.plotly_chart(box_fig, use_container_width=True)
+
+with col2:
+    hist_fig = px.histogram(df, x='LIS', nbins=20, title="Distribution of LIS Scores")
+    st.plotly_chart(hist_fig, use_container_width=True)
+
+# ===============================
+# 2. Performance by Skill Buckets
+# ===============================
+st.subheader("Performance on Skill Buckets")
+
+melted = df.melt(
+    id_vars=['Leader'],
+    value_vars=['Key Skills', 'Necessary Skills', 'Beneficial Skills'],
+    var_name='Skill Type',
+    value_name='Score'
+)
+
+bucket_fig = px.box(melted, x='Skill Type', y='Score', title='Performance by Skill Buckets')
+st.plotly_chart(bucket_fig, use_container_width=True)
+
+# ===============================
+# 3. Insights by Leadership Typology
+# ===============================
+if 'Typology 1' in df.columns:
+    st.subheader("Insights by Leadership Type (Typology 1)")
+    selected_type = st.selectbox("Select a Leadership Typology", df['Typology 1'].dropna().unique())
+
+    filtered = df[df['Typology 1'] == selected_type]
+
+    if not filtered.empty:
+        st.markdown(f"### Average Scores for {selected_type}")
+        avg_scores = filtered[['LIS', 'Key Skills', 'Necessary Skills', 'Beneficial Skills']].mean().round(2).to_frame(name="Average Score")
+        st.dataframe(avg_scores)
+
+        st.markdown("### LIS Distribution for Selected Typology")
+        fig_typo = px.histogram(filtered, x='LIS', nbins=20, title=f"LIS Scores for {selected_type}", color_discrete_sequence=['indigo'])
+        st.plotly_chart(fig_typo, use_container_width=True)
+    else:
+        st.warning("No data found for the selected typology.")
+else:
+    st.warning("Typology 1 column not found in the data.")
+
+
+
+# ===============================
+# 4. Score of Other Skills When a Skill is Selected
+# ===============================
+st.subheader("Compare Distribution of Selected Skills")
+
+# Select one or multiple skills from numerical columns (excluding some metadata columns)
+numeric_skills = [col for col in df.columns if col not in ['Leader', 'LIS', 'Typology 1'] and df[col].dtype in ['int64', 'float64']]
+selected_skills = st.multiselect("Select Skills to Visualize", numeric_skills)
+
+# Generate boxplots only if skills are selected
+if selected_skills:
+    skill_df = df[['Leader'] + selected_skills].dropna()
+    melted_df = skill_df.melt(id_vars='Leader', value_vars=selected_skills, var_name='Skill', value_name='Score')
+
+    fig_selected_skills = px.box(
+        melted_df, x='Skill', y='Score',
+        title="Boxplot of Selected Skills",
+        points='all'
+    )
+    st.plotly_chart(fig_selected_skills, use_container_width=True)
+
+
+# ===============================
+# 5. Better Visualization of Typology Distribution
+# ===============================
+st.subheader("Distribution of Leadership Typologies")
+
+if 'Typology 1' in df.columns:
+    typology_counts = df['Typology 1'].value_counts().reset_index()
+    typology_counts.columns = ['Typology', 'Count']
+    fig_typ_dist = px.pie(typology_counts, names='Typology', values='Count', title='Leadership Typology Distribution')
+    st.plotly_chart(fig_typ_dist, use_container_width=True)
+
+# ===============================
+# 6. Correlation of LIS with Typology (Boxplot)
+# ===============================
+st.subheader("LIS Score by Leadership Typology")
+
+if 'Typology 1' in df.columns:
+    fig_corr = px.box(df, x='Typology 1', y='LIS', title="LIS Score Across Leadership Typologies", points='all')
+    st.plotly_chart(fig_corr, use_container_width=True)
+
+st.subheader("Strongest Skills (Average Score)")
+
+# Weakest skills by average score
+Strongest = (
+    filtered_resources.groupby("Skill")["Score"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(10)
+    .reset_index()
+)
+
+fig_strong = px.bar(
+    Strongest,
+    x="Skill",
+    y="Score",
+    title="Top 10 Strongest Skills by Average Score",
+    labels={"Score": "Average Score"},
+    text_auto=True
+)
+st.plotly_chart(fig_strong, use_container_width=True)
+
+st.subheader("Weakest Skills (Average Score)")
+
+# Weakest skills by average score
+weakest_skills = (
+    filtered_resources.groupby("Skill")["Score"]
+    .mean()
+    .sort_values()
+    .head(10)
+    .reset_index()
+)
+
+fig_weakest = px.bar(
+    weakest_skills,
+    x="Skill",
+    y="Score",
+    title="Top 10 Weakest Skills by Average Score",
+    labels={"Score": "Average Score"},
+    text_auto=True
+)
+st.plotly_chart(fig_weakest, use_container_width=True)
+
+# Resource Type vs Skill Category
+st.subheader("Resource Type vs Skill Category")
+
+res_type_vs_skill_cat = filtered_resources.groupby(["Resource Type", "Skill Category"]).size().reset_index(name="Count")
+fig_res_type_cat = px.bar(
+    res_type_vs_skill_cat,
+    x="Resource Type",
+    y="Count",
+    color="Skill Category",
+    barmode="group",
+    title="Resource Type vs Skill Category"
+)
+st.plotly_chart(fig_res_type_cat, use_container_width=True)
+
+# Allocation of Resources Based on Skills
+st.subheader("Allocation of Resources Based on Skills")
+
+skill_alloc = filtered_resources["Skill"].value_counts().reset_index()
+skill_alloc.columns = ["Skill", "Resource Count"]
+
+fig_alloc = px.bar(
+    skill_alloc,
+    x="Skill",
+    y="Resource Count",
+    title="Number of Resources Allocated per Skill",
+    text_auto=True
+)
+st.plotly_chart(fig_alloc, use_container_width=True)
+
