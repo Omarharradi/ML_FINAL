@@ -49,6 +49,8 @@ GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
+df['Overall Results']= round((df['Overall Results'] / 155) * 100)
+df['EQ']=df['Overall Results']
 resource=pd.read_csv('resources_summary.csv')
 
 
@@ -66,8 +68,8 @@ def get_llm():
 llm = get_llm()
 
 # Common filters
-df_filtered, selected_dashboards, selected_positions, selected_individuals = dynamic_sidebar_filters(df)
-filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals)
+df_filtered, selected_dashboards, selected_positions, selected_individuals, selected_type = dynamic_sidebar_filters(df)
+filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals, selected_type)
 grouped = filtered_resources.groupby(['Leader', 'Skill']).agg(
     Score=('Score', 'last'),
     Below_Threshold_Count=('Below Threshold', 'last'),

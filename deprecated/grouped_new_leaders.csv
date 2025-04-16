@@ -1,0 +1,14 @@
+Leader,Skill,Score,Below_Threshold_Count,Skill_category
+Attia Mohamed,Accountability,75.0,True,Critical
+Attia Mohamed,Building Effective Teams,49.0,True,Necessary
+Attia Mohamed,Communication Skills,60.0,True,Critical
+Attia Mohamed,Conflict Management,60.0,True,Necessary
+Attia Mohamed,Emotional Intelligence,65.0,True,EQ
+Attia Mohamed,Measuring & Evaluating Results,56.0,True,Necessary
+Attia Mohamed,Negotiating Ability,53.0,True,Beneficial
+Attia Mohamed,Problem-Solving,80.0,True,Critical
+Kamel Mahmoud,Calculated Risk-Taking,61.0,False,Beneficial
+Kamel Mahmoud,Change Management,74.0,False,Necessary
+Kamel Mahmoud,Emotional Intelligence,70.0,True,EQ
+Kamel Mahmoud,Innovative Mindset,69.0,False,Beneficial
+Kamel Mahmoud,Problem-Solving,80.0,True,Critical

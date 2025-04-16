@@ -49,6 +49,8 @@ GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
+df['Overall Results']= round((df['Overall Results'] / 155) * 100)
+df['EQ']=df['Overall Results']
 resource=pd.read_csv('resources_summary.csv')
 
 
@@ -66,8 +68,8 @@ def get_llm():
 llm = get_llm()
 
 # Common filters
-df_filtered, selected_dashboards, selected_positions, selected_individuals = dynamic_sidebar_filters(df)
-filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals)
+df_filtered, selected_dashboards, selected_positions, selected_individuals, selected_type = dynamic_sidebar_filters(df)
+filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals, selected_type)
 grouped = filtered_resources.groupby(['Leader', 'Skill']).agg(
     Score=('Score', 'last'),
     Below_Threshold_Count=('Below Threshold', 'last'),
@@ -78,6 +80,34 @@ grouped = filtered_resources.groupby(['Leader', 'Skill']).agg(
 
 
 df=df_filtered.copy()
+
+dashboard_filter =df_filtered['Dashboard Number'].unique()
+position_filter = df_filtered['Position'].unique()
+leader_filter = df_filtered['Leader'].unique()
+
+subtitle = (
+    f"Dashboard: {dashboard_filter}<br>"
+)
+
+# Shared annotation and margin
+annotation = [
+    dict(
+        text=subtitle,
+        x=0.5,
+        y=1.08,
+        xref="paper",
+        yref="paper",
+        showarrow=False,
+        font=dict(size=8),
+        align="center"
+    )
+]
+shared_layout = dict(
+    title_font_size=18,
+    annotations=annotation,
+    margin=dict(t=80)  # Must be the same for both plots
+)
+
 st.title("Leadership Dashboard Analysis")
 
 # ===============================
@@ -89,11 +119,70 @@ col1, col2 = st.columns(2)
 
 with col1:
     box_fig = px.box(df, y='LIS', title="Boxplot of LIS Scores")
+    box_fig.update_layout(**shared_layout)
     st.plotly_chart(box_fig, use_container_width=True)
 
+
+
+
+# ===============================
+# 5. Better Visualization of Typology Distribution
+# ===============================
+st.subheader("Distribution of Leadership Typologies")
+
+if 'Typology 1' in df.columns:
+    typology_counts = df['Typology 1'].value_counts().reset_index()
+    typology_counts.columns = ['Typology', 'Count']
 with col2:
-    hist_fig = px.histogram(df, x='LIS', nbins=20, title="Distribution of LIS Scores")
-    st.plotly_chart(hist_fig, use_container_width=True)
+    fig_typ_dist = px.pie(typology_counts, names='Typology', values='Count', title='Leadership Typology Distribution')
+    fig_typ_dist.update_layout(**shared_layout)
+    st.plotly_chart(fig_typ_dist, use_container_width=True)
+
+# 1. Bin the LIS values
+df['LIS_bin'] = pd.cut(df['LIS'], bins=20)
+
+# 2. Convert bin intervals to string for JSON serialization
+df['LIS_bin'] = df['LIS_bin'].astype(str)
+
+# 2. Group by bins and aggregate leader names
+grouped = df.groupby('LIS_bin').agg({
+    'Leader': lambda x: ', '.join(sorted(set(x))),
+    'LIS': 'count'
+}).reset_index().rename(columns={'LIS': 'Count'})
+
+# 3. Plot using px.bar with a unique key
+fig = px.bar(
+    grouped,
+    x='LIS_bin',
+    y='Count',
+    custom_data=['Leader'],
+    title="Distribution of LIS Scores (with Leaders per bin)"
+)
+
+# 4. Update hover template
+fig.update_traces(
+    hovertemplate='<b>LIS Bin:</b> %{x}<br>' +
+                  '<b>Count:</b> %{y}<br>' +
+                  '<b>Leaders:</b> %{customdata[0]}<extra></extra>'
+)
+
+# 6. Update x-axis ticks
+fig.update_layout(
+    xaxis_title="LIS Score Bins",
+    yaxis_title="Count",
+    xaxis_tickangle=-45,
+    xaxis=dict(
+        tickmode="linear",  # Ensure linear ticks
+        dtick=20  # Set the interval for ticks (e.g., every 20 units)
+    )
+)
+
+# Streamlit plotting with a unique key to avoid duplicate ID errors
+with st.container():
+    chart = st.plotly_chart(fig, use_container_width=True, key="unique_plot_key")
+
+
+
 
 # ===============================
 # 2. Performance by Skill Buckets
@@ -108,6 +197,7 @@ melted = df.melt(
 )
 
 bucket_fig = px.box(melted, x='Skill Type', y='Score', title='Performance by Skill Buckets')
+bucket_fig.update_layout(**shared_layout)
 st.plotly_chart(bucket_fig, use_container_width=True)
 
 # ===============================
@@ -121,8 +211,9 @@ if 'Typology 1' in df.columns:
 
     if not filtered.empty:
         st.markdown(f"### Average Scores for {selected_type}")
-        avg_scores = filtered[['LIS', 'Key Skills', 'Necessary Skills', 'Beneficial Skills']].mean().round(2).to_frame(name="Average Score")
+        avg_scores = filtered[['LIS', 'Key Skills', 'Necessary Skills', 'Beneficial Skills', 'EQ']].mean().round(2).to_frame(name="Average Score")
         st.dataframe(avg_scores)
+        st.dataframe(filtered[['Leader', 'Typology 1']])
 
         st.markdown("### LIS Distribution for Selected Typology")
         fig_typo = px.histogram(filtered, x='LIS', nbins=20, title=f"LIS Scores for {selected_type}", color_discrete_sequence=['indigo'])
@@ -153,19 +244,9 @@ if selected_skills:
         title="Boxplot of Selected Skills",
         points='all'
     )
+    fig_selected_skills.update_layout(**shared_layout)
     st.plotly_chart(fig_selected_skills, use_container_width=True)
 
-
-# ===============================
-# 5. Better Visualization of Typology Distribution
-# ===============================
-st.subheader("Distribution of Leadership Typologies")
-
-if 'Typology 1' in df.columns:
-    typology_counts = df['Typology 1'].value_counts().reset_index()
-    typology_counts.columns = ['Typology', 'Count']
-    fig_typ_dist = px.pie(typology_counts, names='Typology', values='Count', title='Leadership Typology Distribution')
-    st.plotly_chart(fig_typ_dist, use_container_width=True)
 
 # ===============================
 # 6. Correlation of LIS with Typology (Boxplot)
@@ -174,6 +255,7 @@ st.subheader("LIS Score by Leadership Typology")
 
 if 'Typology 1' in df.columns:
     fig_corr = px.box(df, x='Typology 1', y='LIS', title="LIS Score Across Leadership Typologies", points='all')
+    fig_corr.update_layout(**shared_layout)
     st.plotly_chart(fig_corr, use_container_width=True)
 
 st.subheader("Strongest Skills (Average Score)")
@@ -195,6 +277,7 @@ fig_strong = px.bar(
     labels={"Score": "Average Score"},
     text_auto=True
 )
+fig_strong.update_layout(**shared_layout)
 st.plotly_chart(fig_strong, use_container_width=True)
 
 st.subheader("Weakest Skills (Average Score)")
@@ -216,6 +299,7 @@ fig_weakest = px.bar(
     labels={"Score": "Average Score"},
     text_auto=True
 )
+fig_weakest.update_layout(**shared_layout)
 st.plotly_chart(fig_weakest, use_container_width=True)
 
 # Resource Type vs Skill Category
@@ -230,6 +314,7 @@ fig_res_type_cat = px.bar(
     barmode="group",
     title="Resource Type vs Skill Category"
 )
+fig_res_type_cat.update_layout(**shared_layout)
 st.plotly_chart(fig_res_type_cat, use_container_width=True)
 
 # Allocation of Resources Based on Skills
@@ -245,5 +330,6 @@ fig_alloc = px.bar(
     title="Number of Resources Allocated per Skill",
     text_auto=True
 )
+fig_alloc.update_layout(**shared_layout)
 st.plotly_chart(fig_alloc, use_container_width=True)
 

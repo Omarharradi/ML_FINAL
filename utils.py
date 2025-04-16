@@ -14,7 +14,7 @@ import base64
 
 
 
-def get_filtered_df(df, selected_dashboards, selected_positions, selected_individuals):
+def get_filtered_df(df, selected_dashboards, selected_positions, selected_individuals, selected_type):
     filtered = df.copy()
     if selected_dashboards:
         filtered = filtered[filtered["# Dashboard"].isin(selected_dashboards)]
@@ -22,6 +22,8 @@ def get_filtered_df(df, selected_dashboards, selected_positions, selected_indivi
         filtered = filtered[filtered["Position"].isin(selected_positions)]
     if selected_individuals:
         filtered = filtered[filtered["Leader"].isin(selected_individuals)]
+    if selected_type:
+        filtered = filtered[filtered["Typology 1"].isin(selected_type)]
     return filtered
 
 
@@ -567,6 +569,12 @@ def dynamic_sidebar_filters(df):
         individual_options = sorted(df_pos_filtered["Leader"].dropna().unique()) if "Leader" in df.columns else []
         selected_individuals = st.multiselect("Select Leader(s)", individual_options)
 
+        df_type_filtered = df_dash_filtered[df_dash_filtered["Leader"].isin(selected_individuals)] if selected_individuals else df_dash_filtered
+
+        # 5. Individual filter based on dashboards + positions
+        type_options = sorted(df_type_filtered["Typology 1"].dropna().unique()) if "Typology 1" in df.columns else []
+        selected_type = st.multiselect("Select Type(s)", type_options)
+
     # --- Final filtering: apply all selected filters together ---
     df_filtered = df.copy()
 
@@ -576,8 +584,10 @@ def dynamic_sidebar_filters(df):
         df_filtered = df_filtered[df_filtered["Position"].isin(selected_positions)]
     if selected_individuals:
         df_filtered = df_filtered[df_filtered["Leader"].isin(selected_individuals)]
+    if selected_type:
+        df_filtered = df_filtered[df_filtered["Typology 1"].isin(selected_type)]
 
-    return df_filtered, selected_dashboards, selected_positions, selected_individuals
+    return df_filtered, selected_dashboards, selected_positions, selected_individuals, selected_type
 
 
 
@@ -717,7 +727,7 @@ def plot_leaders_below_threshold(group, top_n=10, selected_skill=None):
         xaxis_title='Leader',
         yaxis_title='Below Threshold Count',
         xaxis={'tickangle': 45},  # Rotate x-axis labels for better readability
-        height=600
+        height=500
     )
     
     return fig, leaders_below
