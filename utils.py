@@ -48,7 +48,7 @@ def build_donut_chart(lis_data):
     }
 
        # Original full data
-    full_labels = ['Meeting Minimum <br>Competency', 'Exceeding Expectations', 'Requiring Training']
+    full_labels = ['Demonstrating Role <br>Proficiency', 'Surpassing Role Proficiency', 'Requiring Training']
     full_values = [leaders_meeting, leaders_exceeding, leaders_requiring_training]
     full_colors = ['#5c9acc', '#f4a300', '#e63946']
 
@@ -796,3 +796,75 @@ def plot_top_performers_by_skill(df, skill=None, top_n=5, bar_color="#636EFA"):
     )
 
     return fig, unique_leader_scores
+
+
+
+
+
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+
+def build_histogram_with_leaders(df):
+    '''
+    Expects a DataFrame with columns: 'LIS' and 'Leader'
+    '''
+    lis_data = df['LIS']
+    leaders = df['Leader']
+    
+    # Stats
+    mean_lis = np.mean(lis_data)
+    std_lis = np.std(lis_data)
+    std_low = mean_lis - 1.5 * std_lis
+    std_high = mean_lis + 1.5 * std_lis
+
+    # Bin the LIS data manually into 20 bins
+    bin_counts, bin_edges = np.histogram(lis_data, bins=20)
+    bin_labels = [f"{int(left)}–{int(right)}" for left, right in zip(bin_edges[:-1], bin_edges[1:])]
+
+    # Assign each row to a bin
+    df['LIS_bin'] = pd.cut(df['LIS'], bins=bin_edges, labels=bin_labels, include_lowest=True)
+
+    # Group by bin: count and leader names
+    grouped = df.groupby('LIS_bin').agg({
+        'Leader': lambda x: ', '.join(sorted(set(x))),
+        'LIS': 'count'
+    }).reset_index().rename(columns={'LIS': 'Count'})
+
+    # Build bar plot with hover info
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=grouped['LIS_bin'],
+        y=grouped['Count'],
+        customdata=grouped['Leader'],
+        marker_color='darkblue',
+        hovertemplate='<b>LIS Range:</b> %{x}<br>' +
+                      '<b>Count:</b> %{y}<br>' +
+                      '<b>Leaders:</b> %{customdata}<extra></extra>'
+    ))
+
+
+    fig.update_layout(
+        title="Leadership Index Score (LIS) Distribution",
+        xaxis_title="LIS Score Range",
+        yaxis_title="Number of People",
+        template="plotly_white",
+        width=800,
+        height=450,
+        margin=dict(t=50, b=50, l=50, r=50)
+    )
+
+    # Summary stats
+    summary_stats = {
+        "mean": mean_lis,
+        "std_dev": std_lis,
+        "1.5_std_below": std_low,
+        "1.5_std_above": std_high,
+        "min_value": np.min(lis_data),
+        "max_value": np.max(lis_data),
+        "count": len(lis_data),
+        "below_1.5_std": np.sum(lis_data < std_low),
+        "above_1.5_std": np.sum(lis_data > std_high)
+    }
+
+    return fig

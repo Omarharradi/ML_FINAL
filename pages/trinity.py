@@ -25,7 +25,8 @@ from utils import (
     plot_resource_distribution_by_category,
     plot_top_resources_by_category,
     plot_leaders_below_threshold,
-    plot_top_performers_by_skill
+    plot_top_performers_by_skill,
+    build_histogram_with_leaders
 )
 
 # SQLite patch for compatibility
@@ -85,9 +86,10 @@ dashboard_filter =df_filtered['Dashboard Number'].unique()
 position_filter = df_filtered['Position'].unique()
 leader_filter = df_filtered['Leader'].unique()
 
-subtitle = (
-    f"Dashboard: {dashboard_filter}<br>"
-)
+if len(dashboard_filter) == 12:
+    subtitle = "All Dashboards"
+else:
+    subtitle = f"Dashboard: {', '.join(dashboard_filter)}"
 
 # Shared annotation and margin
 annotation = [
@@ -138,48 +140,11 @@ with col2:
     fig_typ_dist.update_layout(**shared_layout)
     st.plotly_chart(fig_typ_dist, use_container_width=True)
 
-# 1. Bin the LIS values
-df['LIS_bin'] = pd.cut(df['LIS'], bins=20)
 
-# 2. Convert bin intervals to string for JSON serialization
-df['LIS_bin'] = df['LIS_bin'].astype(str)
-
-# 2. Group by bins and aggregate leader names
-grouped = df.groupby('LIS_bin').agg({
-    'Leader': lambda x: ', '.join(sorted(set(x))),
-    'LIS': 'count'
-}).reset_index().rename(columns={'LIS': 'Count'})
-
-# 3. Plot using px.bar with a unique key
-fig = px.bar(
-    grouped,
-    x='LIS_bin',
-    y='Count',
-    custom_data=['Leader'],
-    title="Distribution of LIS Scores (with Leaders per bin)"
-)
-
-# 4. Update hover template
-fig.update_traces(
-    hovertemplate='<b>LIS Bin:</b> %{x}<br>' +
-                  '<b>Count:</b> %{y}<br>' +
-                  '<b>Leaders:</b> %{customdata[0]}<extra></extra>'
-)
-
-# 6. Update x-axis ticks
-fig.update_layout(
-    xaxis_title="LIS Score Bins",
-    yaxis_title="Count",
-    xaxis_tickangle=-45,
-    xaxis=dict(
-        tickmode="linear",  # Ensure linear ticks
-        dtick=20  # Set the interval for ticks (e.g., every 20 units)
-    )
-)
-
-# Streamlit plotting with a unique key to avoid duplicate ID errors
 with st.container():
-    chart = st.plotly_chart(fig, use_container_width=True, key="unique_plot_key")
+    hist_fig=build_histogram_with_leaders(df_filtered)
+    hist_fig.update_layout(**shared_layout)
+    st.plotly_chart(hist_fig, use_container_width=True)
 
 
 
