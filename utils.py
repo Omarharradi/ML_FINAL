@@ -823,7 +823,7 @@ def build_histogram_with_leaders(df):
     bin_labels = [f"{int(left)}–{int(right)}" for left, right in zip(bin_edges[:-1], bin_edges[1:])]
 
     # Assign each row to a bin
-    df['LIS_bin'] = pd.cut(df['LIS'], bins=bin_edges, labels=bin_labels, include_lowest=True)
+    df['LIS_bin'] = pd.cut(df['LIS'], bins=bin_edges, labels=bin_labels, include_lowest=True, ordered=False)
 
     # Group by bin: count and leader names
     grouped = df.groupby('LIS_bin').agg({
