@@ -210,6 +210,7 @@ if page == "Overview":
 elif page == "Leader Details":
     st.markdown("---")
     st.subheader("📊 Learning Resource Insights")
+    st.dataframe(filtered_resources[["Leader", "Skill", "Score", "Resource Type", "Skill Category"]].dropna().reset_index(drop=True))
 
     resource_type_fig, resource_type_summary = plot_resource_type_distribution(filtered_resources)
     top_skills_fig, top_skills_summary = plot_top_skills(filtered_resources)
