@@ -8,6 +8,8 @@ import streamlit as st
 import plotly.express as px
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
+import streamlit.components.v1 as components
+
 
 # Custom utils
 from utils import (
@@ -51,6 +53,9 @@ df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip(
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
 df['Overall Results']= round((df['Overall Results'] / 155) * 100)
 df['EQ']=df['Overall Results']
+df['Link'] = "https://ivy-dashboard-4833f144eaf4.herokuapp.com/page-2?user_id=" + df['ID'].astype(str)
+df['Dashboard Link'] = df['Link'].apply(lambda x: f"[Open Dashboard]({x})")
+
 resource=pd.read_csv('resources_summary.csv')
 
 
@@ -94,6 +99,60 @@ if chat_input:
         answer = ask(chat_input)
     st.sidebar.markdown(f'<div class="chat-message assistant-message">{answer}</div>', unsafe_allow_html=True)
 
+# Build HTML table
+html = """
+<style>
+.table-container {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+}
+th, td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+a {
+    color: #1f77b4;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+</style>
+<div class="table-container">
+<table>
+    <thead>
+        <tr>
+            <th>Leader</th>
+            <th>Dashboard Link</th>
+            <th>LIS</th>
+            <th>Dashboard</th>
+        </tr>
+    </thead>
+    <tbody>
+"""
+
+for _, row in df_filtered.iterrows():
+    html += f"""
+        <tr>
+            <td>{row['Leader']}</td>
+            <td>{row['# Dashboard']}</td>
+            <td>{round(row['LIS'], 1)}</td>
+            <td><a href="{row['Link']}" target="_blank">Open Dashboard</a></td>
+        </tr>
+    """
+
+html += """
+    </tbody>
+</table>
+</div>
+"""
 
 
 # Overview Page
@@ -102,7 +161,9 @@ if page == "Overview":
     st.markdown("This app displays interactive visualizations based on overall leadership competency levels.")
 
     st.header("All Leaders")
-    st.dataframe(df_filtered[["# Dashboard", "Leader", "Email", 'LIS']].dropna().reset_index(drop=True))
+    components.html(html, height=350, scrolling=True)
+
+
 
     st.header("Overall Results")
     donut_fig, donut_summary = build_donut_chart(df_filtered['LIS'])
@@ -137,7 +198,6 @@ if page == "Overview":
     if unique_dashboards:
         selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards)
         dashboard_leaders = sorted(df_filtered[df_filtered["# Dashboard"] == selected_dashboard]["Leader"].unique())
-        dashboard_leaders = ["None"] + dashboard_leaders
         selected_leader = st.selectbox("Select Leader", dashboard_leaders)
 
         fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, df_filtered, skills_mapping)
@@ -150,6 +210,7 @@ if page == "Overview":
 elif page == "Leader Details":
     st.markdown("---")
     st.subheader("📊 Learning Resource Insights")
+    st.dataframe(filtered_resources[["Leader", "Skill", "Score", "Resource Type", "Skill Category"]].dropna().reset_index(drop=True))
 
     resource_type_fig, resource_type_summary = plot_resource_type_distribution(filtered_resources)
     top_skills_fig, top_skills_summary = plot_top_skills(filtered_resources)
