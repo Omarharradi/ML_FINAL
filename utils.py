@@ -143,6 +143,7 @@ from plotly.subplots import make_subplots
 def radar_chart_plotly(dashboard, leader, df, skills_mapping):
     '''
     Compare average dashboard skill scores and individual leader's skill scores.
+    If leader is "None", only show the dashboard average scores.
     '''
     mapping = skills_mapping.get(dashboard, {})
     categories = ['Critical Skills', 'Necessary', 'Beneficial Skills']
@@ -173,9 +174,15 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
         if not skills:
             continue
 
+        # Average dashboard scores
         avg_scores = [df.loc[df['# Dashboard'] == dashboard, skill].mean() for skill in skills if skill in df.columns]
-        leader_scores = [df.loc[(df['# Dashboard'] == dashboard) & (df['Leader'] == leader), skill].values[0]
-                         if skill in df.columns else None for skill in skills]
+        
+        # If a leader is selected, get their scores; otherwise, set leader scores to None
+        if leader != "None":
+            leader_scores = [df.loc[(df['# Dashboard'] == dashboard) & (df['Leader'] == leader), skill].values[0]
+                             if skill in df.columns else None for skill in skills]
+        else:
+            leader_scores = [None] * len(skills)  # No leader selected, show no leader scores
 
         summary_stats["skill_scores"][cat] = {
             "average": avg_scores,
@@ -207,18 +214,19 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
             row=1, col=i+1
         )
 
-        # Add leader trace
-        fig.add_trace(
-            go.Scatterpolar(
-                r=leader_scores_closed,
-                theta=skills_closed,
-                fill='toself',
-                mode='lines+markers',
-                name='Leader',
-                marker=dict(color=category_colors["Leader"])
-            ),
-            row=1, col=i+1
-        )
+        # Only add the leader trace if a leader is selected
+        if leader != "None":
+            fig.add_trace(
+                go.Scatterpolar(
+                    r=leader_scores_closed,
+                    theta=skills_closed,
+                    fill='toself',
+                    mode='lines+markers',
+                    name='Leader',
+                    marker=dict(color=category_colors["Leader"])
+                ),
+                row=1, col=i+1
+            )
 
         # Update radar settings
         fig.update_polars(
@@ -230,7 +238,7 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
         )
 
     fig.update_layout(
-        title_text=f"Radar Chart: {leader} vs Dashboard Avg ({dashboard})",
+        title_text=f"Radar Chart: {leader} vs Dashboard Avg ({dashboard})" if leader != "None" else f"Radar Chart: {dashboard} (No Leader)",
         showlegend=True,
         width=350 * len(categories),
         height=500,
@@ -238,8 +246,6 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
     )
 
     return fig, summary_stats
-
-
 
 
 

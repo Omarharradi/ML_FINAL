@@ -98,7 +98,7 @@ annotation = [
         xref="paper",
         yref="paper",
         showarrow=False,
-        font=dict(size=8),
+        font=dict(size=12),
         align="center"
     )
 ]

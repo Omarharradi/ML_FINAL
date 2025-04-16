@@ -40,14 +40,17 @@ load_dotenv()
 st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
 
 # Set API keys from Streamlit secrets
-os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-
+#os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+GOOGLE_API_KEY='AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
+GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 
 # Load data and skills mapping
 df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
+df['Overall Results']= round((df['Overall Results'] / 155) * 100)
+df['EQ']=df['Overall Results']
 resource=pd.read_csv('resources_summary.csv')
 
 
@@ -65,8 +68,8 @@ def get_llm():
 llm = get_llm()
 
 # Common filters
-df_filtered, selected_dashboards, selected_positions, selected_individuals = dynamic_sidebar_filters(df)
-filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals)
+df_filtered, selected_dashboards, selected_positions, selected_individuals, selected_type = dynamic_sidebar_filters(df)
+filtered_resources=get_filtered_df(resource, selected_dashboards, selected_positions, selected_individuals, selected_type)
 grouped = filtered_resources.groupby(['Leader', 'Skill']).agg(
     Score=('Score', 'last'),
     Below_Threshold_Count=('Below Threshold', 'last'),
@@ -134,6 +137,7 @@ if page == "Overview":
     if unique_dashboards:
         selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards)
         dashboard_leaders = sorted(df_filtered[df_filtered["# Dashboard"] == selected_dashboard]["Leader"].unique())
+        dashboard_leaders = ["None"] + dashboard_leaders
         selected_leader = st.selectbox("Select Leader", dashboard_leaders)
 
         fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, df_filtered, skills_mapping)
