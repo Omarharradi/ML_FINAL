@@ -170,9 +170,9 @@ st.plotly_chart(bucket_fig, use_container_width=True)
 # ===============================
 if 'Typology 1' in df.columns:
     st.subheader("Insights by Leadership Type (Typology 1)")
-    selected_type = st.selectbox("Select a Leadership Typology", df['Typology 1'].dropna().unique())
+    selected_type = st.multiselect("Select a Leadership Typology", df['Typology 1'].dropna().unique())
 
-    filtered = df[df['Typology 1'] == selected_type]
+    filtered = df[df['Typology 1'].isin(selected_type)]
 
     if not filtered.empty:
         st.markdown(f"### Average Scores for {selected_type}")
