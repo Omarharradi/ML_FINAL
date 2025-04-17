@@ -399,6 +399,7 @@ def initialize_pipeline(json_path="result.json"):
         docs.append(Document(page_content=text))
 
     df = pd.DataFrame(records)
+    df=pd.read_csv('LDP_summary.csv')
 
     # -----------------------------
     # LLM & Embeddings
