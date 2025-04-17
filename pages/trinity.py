@@ -323,49 +323,62 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 # Melt the DataFrame so each skill becomes a row under a single "Skill" column
-melted_df = df.melt(id_vars=["# Dashboard"], 
-                    value_vars=[
-                        'Emotional Identification, Perception, and Expression', 
-                        'Emotional Facilitation of Thought', 
-                        'Emotional Understanding', 
-                        'Emotional Management',
-                        'Emotional Self-awareness',
-                        'Awareness of Strengths and Limitations',
-                        'Comfort with Emotions',
-                        "Recognition of Other's Emotions",
-                        'Rumination',
-                        'Problem-Solving',
-                        'Positive Mindset',
-                        'Emotional Reflection',
-                        'Emotional Integration',
-                        'Conflict-Resolution Knowledge',
-                        'Empathy',
-                        'Social Insight',
-                        'Self-Control',
-                        'Resilience/Hardiness',
-                        'Coping Skills',
-                        'Self-Motivation',
-                        'Striving',
-                        'Emotional Selectivity',
-                        'Adaptable Social Skills',
-                        'Conflict-Resolution Behavior'
-                    ],
-                    var_name="Skill",
-                    value_name="Score")
+melted_df = df.melt(
+    id_vars=["# Dashboard"], 
+    value_vars=[
+        'Emotional Identification, Perception, and Expression', 
+        'Emotional Facilitation of Thought', 
+        'Emotional Understanding', 
+        'Emotional Management',
+        'Emotional Self-awareness',
+        'Awareness of Strengths and Limitations',
+        'Comfort with Emotions',
+        "Recognition of Other's Emotions",
+        'Rumination',
+        'Problem-Solving',
+        'Positive Mindset',
+        'Emotional Reflection',
+        'Emotional Integration',
+        'Conflict-Resolution Knowledge',
+        'Empathy',
+        'Social Insight',
+        'Self-Control',
+        'Resilience/Hardiness',
+        'Coping Skills',
+        'Self-Motivation',
+        'Striving',
+        'Emotional Selectivity',
+        'Adaptable Social Skills',
+        'Conflict-Resolution Behavior'
+    ],
+    var_name="Skill",
+    value_name="Score"
+)
 
-# Pivot the melted data
+# Pivot the melted data for heatmap
 heatmap_data = melted_df.pivot_table(values="Score", index="Skill", columns="# Dashboard", aggfunc="mean")
 
-# Plot heatmap
-fig, ax = plt.subplots(figsize=(12, 10))
-sns.heatmap(heatmap_data, annot=True, fmt=".1f", cmap="coolwarm", ax=ax, cbar_kws={'label': 'Average Score'})
-plt.title("Average Skill Scores by Dashboard")
-plt.xticks(rotation=45)
-st.pyplot(fig)
+# Sort for nicer look (optional)
+heatmap_data = heatmap_data.sort_index()
+
+# Plotly heatmap
+fig = px.imshow(
+    heatmap_data,
+    text_auto=".1f",
+    labels=dict(x="Dashboard", y="Skill", color="Avg Score"),
+    color_continuous_scale="RdBu_r",
+    aspect="auto"
+)
+
+fig.update_layout(
+    title="Average Skill Scores by Dashboard",
+    xaxis_tickangle=45,
+    height=800
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
  
 
 import plotly.express as px
