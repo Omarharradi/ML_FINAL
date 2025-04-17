@@ -198,6 +198,7 @@ if page == "Overview":
     if unique_dashboards:
         selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards)
         dashboard_leaders = sorted(df_filtered[df_filtered["# Dashboard"] == selected_dashboard]["Leader"].unique())
+        dashboard_leaders = ["None"] + dashboard_leaders  # Prepend "None"
         selected_leader = st.selectbox("Select Leader", dashboard_leaders)
 
         fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, df_filtered, skills_mapping)

@@ -298,3 +298,131 @@ fig_alloc = px.bar(
 fig_alloc.update_layout(**shared_layout)
 st.plotly_chart(fig_alloc, use_container_width=True)
 
+
+
+import plotly.express as px
+import plotly.graph_objects as go
+
+fig = px.box(df, x="Dashboard Number", y="LIS", points="all", color="Dashboard Number")
+fig.add_hline(y=60, line_dash="dot", line_color="red")
+fig.add_hline(y=70, line_dash="dot", line_color="orange")
+fig.add_hline(y=85, line_dash="dot", line_color="green")
+fig.update_layout(title="LIS Distribution by Dashboard", yaxis_title="LIS")
+
+st.plotly_chart(fig, use_container_width=True)
+
+
+
+
+
+
+fig = px.scatter(df, x="LIS", y="Key Skills", size="EQ", color="Dashboard Number",
+                 hover_name="Leader", title="Bubble Plot: LIS vs Key Skills vs EQ")
+
+st.plotly_chart(fig, use_container_width=True)
+
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Melt the DataFrame so each skill becomes a row under a single "Skill" column
+melted_df = df.melt(id_vars=["# Dashboard"], 
+                    value_vars=[
+                        'Emotional Identification, Perception, and Expression', 
+                        'Emotional Facilitation of Thought', 
+                        'Emotional Understanding', 
+                        'Emotional Management',
+                        'Emotional Self-awareness',
+                        'Awareness of Strengths and Limitations',
+                        'Comfort with Emotions',
+                        "Recognition of Other's Emotions",
+                        'Rumination',
+                        'Problem-Solving',
+                        'Positive Mindset',
+                        'Emotional Reflection',
+                        'Emotional Integration',
+                        'Conflict-Resolution Knowledge',
+                        'Empathy',
+                        'Social Insight',
+                        'Self-Control',
+                        'Resilience/Hardiness',
+                        'Coping Skills',
+                        'Self-Motivation',
+                        'Striving',
+                        'Emotional Selectivity',
+                        'Adaptable Social Skills',
+                        'Conflict-Resolution Behavior'
+                    ],
+                    var_name="Skill",
+                    value_name="Score")
+
+# Pivot the melted data
+heatmap_data = melted_df.pivot_table(values="Score", index="Skill", columns="# Dashboard", aggfunc="mean")
+
+# Plot heatmap
+fig, ax = plt.subplots(figsize=(12, 10))
+sns.heatmap(heatmap_data, annot=True, fmt=".1f", cmap="coolwarm", ax=ax, cbar_kws={'label': 'Average Score'})
+plt.title("Average Skill Scores by Dashboard")
+plt.xticks(rotation=45)
+st.pyplot(fig)
+ 
+
+import plotly.express as px
+import plotly.graph_objects as go
+
+# Step 1: Create LIS Band
+def get_lis_band(lis):
+    if lis < 70:
+        return "<70"
+    elif 70 <= lis < 75:
+        return "70–75"
+    elif 75 <= lis < 80:
+        return "75–80"
+    else:
+        return "80+"
+
+df["LIS Band"] = df["LIS"].apply(get_lis_band)
+
+# Step 2: Define Skill Performance Buckets
+def skill_bucket(score):
+    if score < 70:
+        return "Red (<70)"
+    elif score < 80:
+        return "Orange (70–79)"
+    else:
+        return "Green (80+)"
+
+df["Skill Bucket"] = df["Key Skills"].apply(skill_bucket)
+
+# Step 3: Aggregate
+grouped = df.groupby(["LIS Band", "Skill Bucket"]).size().reset_index(name="Count")
+
+# Optional sort LIS Bands
+lis_band_order = ["<70", "70–75", "75–80", "80+"]
+grouped["LIS Band"] = pd.Categorical(grouped["LIS Band"], categories=lis_band_order, ordered=True)
+grouped = grouped.sort_values("LIS Band")
+
+# Step 4: Plot using Plotly
+fig = px.bar(
+    grouped,
+    x="LIS Band",
+    y="Count",
+    color="Skill Bucket",
+    title="Leaders by LIS Band and Key Skills Performance",
+    color_discrete_map={
+        "Red (<70)": "#d62728",
+        "Orange (70–79)": "#ff7f0e",
+        "Green (80+)": "#2ca02c"
+    },
+    category_orders={"LIS Band": lis_band_order},
+)
+
+fig.update_layout(
+    barmode="stack",
+    xaxis_title="LIS Band",
+    yaxis_title="Number of Leaders",
+    legend_title="Skill Bucket"
+)
+
+st.plotly_chart(fig, use_container_width=True)
