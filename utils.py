@@ -167,7 +167,7 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
     )
 
     radial_range = [0, 100]
-    tickvals = [0, 20, 40, 60, 80, 100]
+    tickvals = [0, 40, 80]
 
     for i, cat in enumerate(categories):
         skills = mapping.get(cat, [])
@@ -208,7 +208,7 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
                 theta=skills_closed,
                 fill='toself',
                 mode='lines+markers',
-                name='Average',
+                name=f"Dashboard Avg",
                 marker=dict(color=category_colors["Average"])
             ),
             row=1, col=i+1
@@ -222,7 +222,7 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
                     theta=skills_closed,
                     fill='toself',
                     mode='lines+markers',
-                    name='Leader',
+                    name=f"{leader} (Leader)",
                     marker=dict(color=category_colors["Leader"])
                 ),
                 row=1, col=i+1
@@ -232,7 +232,11 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
         fig.update_polars(
             dict(
                 radialaxis=dict(visible=True, range=radial_range, tickvals=tickvals, showline=True),
-                angularaxis=dict(rotation=0, tickfont=dict(size=10))
+                angularaxis=dict(
+    rotation=50,
+    tickfont=dict(size=8),
+    direction="clockwise"
+)
             ),
             row=1, col=i+1
         )
@@ -241,8 +245,17 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
         title_text=f"Radar Chart: {leader} vs Dashboard Avg ({dashboard})" if leader != "None" else f"Radar Chart: {dashboard} (No Leader)",
         showlegend=True,
         width=350 * len(categories),
-        height=500,
-        margin=dict(t=100, b=50, l=50, r=50)
+        height=400,
+        margin=dict(t=80, b=0, l=60, r=100),
+        legend=dict(
+    orientation="h",        # horizontal legend
+    yanchor="bottom",
+    y=-0.2,
+    xanchor="center",
+    x=0.5,
+    title_text='',          # remove default legend title
+    font=dict(size=10)
+)
     )
 
     return fig, summary_stats

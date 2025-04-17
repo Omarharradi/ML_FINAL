@@ -415,7 +415,18 @@ lis_band_order = ["<70", "70–75", "75–80", "80+"]
 grouped["LIS Band"] = pd.Categorical(grouped["LIS Band"], categories=lis_band_order, ordered=True)
 grouped = grouped.sort_values("LIS Band")
 
-# Step 4: Plot using Plotly
+
+# Create a grouped dataframe where we count dashboards and keep their list
+grouped = df.groupby(["LIS Band", "Skill Bucket"])["Dashboard Number"].agg(list).reset_index()
+grouped["Count"] = grouped["Dashboard Number"].apply(len)
+
+# Optional: Create a cleaner string for hover display
+grouped["Dashboards"] = grouped["Dashboard Number"].apply(lambda x: ", ".join(map(str, x)))
+
+# Define LIS band order
+lis_band_order = ["<70", "70–75", "75–80", "80+"]
+
+# Step 2: Plot using Plotly
 fig = px.bar(
     grouped,
     x="LIS Band",
@@ -428,13 +439,17 @@ fig = px.bar(
         "Green (80+)": "#2ca02c"
     },
     category_orders={"LIS Band": lis_band_order},
+    hover_data={"Dashboards": True}  # Show dashboard numbers in hover
 )
 
+# Step 3: Layout customization
 fig.update_layout(
     barmode="stack",
     xaxis_title="LIS Band",
     yaxis_title="Number of Leaders",
-    legend_title="Skill Bucket"
+    legend_title="Skill Bucket",
+    hoverlabel=dict(bgcolor="white", font_size=12, font_family="Arial")
 )
 
+# Step 4: Display in Streamlit
 st.plotly_chart(fig, use_container_width=True)
