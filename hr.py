@@ -51,7 +51,6 @@ GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
-df['Overall Results']= round((df['Overall Results'] / 155) * 100)
 df['EQ']=df['Overall Results']
 df['Link'] = "https://ivy-dashboard-4833f144eaf4.herokuapp.com/page-2?user_id=" + df['ID'].astype(str)
 df['Dashboard Link'] = df['Link'].apply(lambda x: f"[Open Dashboard]({x})")

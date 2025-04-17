@@ -50,7 +50,6 @@ GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
 df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
-df['Overall Results']= round((df['Overall Results'] / 155) * 100)
 df['EQ']=df['Overall Results']
 resource=pd.read_csv('resources_summary.csv')
 
