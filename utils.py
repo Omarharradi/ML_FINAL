@@ -364,6 +364,8 @@ from langchain.chains import RetrievalQA, LLMChain
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_core.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
+import io
+import contextlib
 def initialize_pipeline(json_path="result.json"):
     """
     Initializes the pipeline by:
@@ -400,6 +402,7 @@ def initialize_pipeline(json_path="result.json"):
 
     df = pd.DataFrame(records)
     df=pd.read_csv('LDP_summary.csv')
+    df=df[['ID', 'Leader', 'Position', 'LIS', 'EQ', 'Typology 1', '# Dashboard','Skills_Below_Threshold','Should_be_promoted','Engagement Score']]
 
     # -----------------------------
     # LLM & Embeddings
@@ -410,16 +413,35 @@ def initialize_pipeline(json_path="result.json"):
     # -----------------------------
     # RAG Setup
     # -----------------------------
-    persist_dir = "./chroma_db"
-    if os.path.exists(persist_dir) and os.listdir(persist_dir):
-        # Load existing vector store
-        vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embedding, collection_name="ldp_docs")
+    persist_dir = os.path.abspath("./chroma_db")
+    db_file = os.path.join(persist_dir, "chroma.sqlite3")
+
+    # Ensure the directory exists
+    os.makedirs(persist_dir, exist_ok=True)
+
+    # Load or create the vector store
+    if os.path.exists(db_file):
+        print("✅ Loading existing Chroma vector store...")
+
+        vectorstore = Chroma(
+            persist_directory="./chroma_db",
+            embedding_function=embedding,
+            collection_name='ldp_docs'
+        )
     else:
-        # Create a new vector store and persist it
-        vectorstore = Chroma.from_documents(docs, embedding, collection_name="ldp_docs", persist_directory=persist_dir)
+        print("🆕 Creating new Chroma vector store...")
+
+        vectorstore = Chroma.from_documents(
+            documents=docs,
+            embedding=embedding,
+            collection_name='ldp_docs',
+            persist_directory="./chroma_db"
+        )
+
         vectorstore.persist()
+        print("💾 Chroma DB persisted to disk.")
     
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 20})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
     # Custom prompt for the RAG chain
     context_prompt = PromptTemplate.from_template("""
@@ -460,8 +482,13 @@ Answer by combining insights across individuals. Focus on patterns, averages, an
         llm=llm,
         df=df,
         verbose=True,
-        allow_dangerous_code=True
-    )
+        allow_dangerous_code=True,
+        agent_executor_kwargs={
+        "prefix": """You are a smart data assistant working with a DataFrame `df`.
+When users ask about highest scores or top performers, **always return both the name and the exact score**.
+If you write Python code to find someone, include both the value and label in the output."""
+    })
+    
 
     # -----------------------------
     # Classifier to Route Query
@@ -482,13 +509,23 @@ Question: {query}
     # Unified Ask Function
     # -----------------------------
     def ask(query: str) -> str:
+        # 1. Route the query
         route = classifier_chain.run({"query": query}).strip().lower()
         print(f"[Routing → {route}]")
-        
-        if route == "structured":
-            # Run the pandas agent to get the raw output including its chain trace.
-            raw_result = pandas_agent.run(query)
-            # Use an LLM chain to rephrase the full chain trace into a natural response.
+
+        # 2. Set weights
+        structured_weight = 0.75 if route == "structured" else 0.25
+        semantic_weight = 0.75 if route == "semantic" else 0.25
+
+        # 3. STRUCTURED answer
+        structured_text = ""
+        try:
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                _ = pandas_agent.run(query)
+            structured_trace = buffer.getvalue().strip()
+            print(f"[Structured Trace]\n{structured_trace}")
+
             rephrase_prompt = PromptTemplate.from_template("""
 You are an expert data analyst and storyteller. Below is the full trace of how a pandas agent processed a query, including its thoughts, actions, and the final answer.
 
@@ -498,20 +535,43 @@ Full Agent Trace:
 The user's original question was:
 "{query}"
 
-Based on this trace, generate a natural, complete sentence that states the final answer along with all relevant details. 
-In particular, if the agent identified a person with the highest LIS and a numerical score, include the person's full name, the exact LIS score, and any other useful context.
-For example, instead of just saying "William Smullen", your answer should be like: "William Smullen achieved the highest LIS of 92.615."
+Generate a complete, natural-sounding answer that includes exact names, scores, and reasoning.
 """)
             rephrase_chain = LLMChain(llm=llm, prompt=rephrase_prompt)
-            natural_result = rephrase_chain.run({"raw_result": raw_result, "query": query})
-            
-            return natural_result.strip()
-        elif route == "semantic":
-            return rag_chain.run(query)
+            structured_response = rephrase_chain.invoke({
+                "raw_result": structured_trace,
+                "query": query
+            })
+            structured_text = structured_response.get("text", "").strip()
+
+        except Exception as e:
+            print(f"[Structured Agent Error] {e}")
+            structured_text = ""
+
+        # 4. SEMANTIC answer
+        try:
+            semantic_text = rag_chain.run(query).strip()
+        except Exception as e:
+            print(f"[Semantic Error] {e}")
+            semantic_text = ""
+
+        # 5. Fallbacks / Merge Logic
+        if structured_text and semantic_text:
+            if route == "structured":
+                return f"{structured_text}\n\n(Additional insight): {semantic_text}"
+            elif route == "semantic":
+                return f"{semantic_text}\n\n(Data insight): {structured_text}"
+            else:
+                return f"{structured_text}\n\n---\n{semantic_text}"
+        elif structured_text:
+            return structured_text
+        elif semantic_text:
+            return semantic_text
         else:
-            return "Sorry, I couldn't confidently classify your question."
+            return "Sorry, I couldn't answer that based on the current data."
 
     return ask
+
 
 
 import inspect
