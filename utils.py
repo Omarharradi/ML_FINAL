@@ -262,37 +262,44 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
 
 
 
-def build_polar_chart(df):
-    ''' 
-    LIS Stands for Leadership Index Score which is a weighted score of critical skills necessary skills and beneficial skills to have a standardised metric to compare all individuals
-    EQ assesses Emotional Intelligence which is one of the most important skills that all leaders are assessed in.
-    '''
-    avg_overall = df.groupby("Dashboard Number")["LIS"].mean().reset_index()
-    avg_overall_dict=avg_overall.to_dict(orient='records')
+import plotly.express as px
+
+def build_polar_chart(df, metric="LIS"):
+    """
+    Builds a polar bar chart for the given metric ('LIS' or 'EQ') by Typology.
+
+    Args:
+        df (pd.DataFrame): Data with 'Typology 1', 'LIS', and 'EQ' columns
+        metric (str): Either "LIS" or "EQ"
+
+    Returns:
+        fig (plotly.graph_objs._figure.Figure): Polar bar chart
+        avg_stats (list of dict): Summary per typology
+    """
+    assert metric in ["LIS", "EQ"], "Metric must be 'LIS' or 'EQ'"
+
+    avg = df.groupby("Typology 1")[metric].mean().reset_index()
+    avg_stats = avg.to_dict(orient="records")
 
     fig = px.bar_polar(
-        avg_overall,
-        r="LIS",
-        theta="Dashboard Number",
-        color="Dashboard Number",
+        avg,
+        r=metric,
+        theta="Typology 1",
+        color="Typology 1",
         template="plotly_white",
-        title="Average Overall Leadership Index Score (LIS) by Dashboard (Polar Bar Chart)",
-        color_discrete_sequence=px.colors.qualitative.Bold
+        title=f"Average {metric} by Typology",
+        color_discrete_sequence=px.colors.qualitative.Pastel
     )
 
     fig.update_layout(
-        margin=dict(l=50, r=50, t=100, b=50),
+        margin=dict(t=80, b=40, l=40, r=40),
         polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100],  # Set fixed range
-                tickvals=[90],  # Only show tick at 100
-                ticktext=["90"],  # Display '100' only
-                showline=False
-            )
+            radialaxis=dict(visible=True, range=[0, 100])
         )
     )
-    return fig, avg_overall_dict
+
+    return fig, avg_stats
+
 
 def build_box_plot(df):
     ''' 
@@ -354,62 +361,64 @@ def get_insights_chart(lis_data, source_code, llm):
 # utils.py
 
 
-import os
-import json
-import pandas as pd
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain.chains import RetrievalQA, LLMChain
-from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_core.prompts import PromptTemplate
-from langchain.memory import ConversationBufferMemory
+from langchain_experimental.agents import create_pandas_dataframe_agent
+from langchain_core.runnables import RunnableSequence
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import RetrievalQA
+from langchain.memory import ConversationBufferMemory  
+from docx import Document as DocxDocument
+from langchain.embeddings import HuggingFaceEmbeddings
 import io
-import contextlib
-def initialize_pipeline(json_path="result.json"):
+from contextlib import redirect_stdout
+
+
+
+
+def initialize_pipeline(docx_path="LDP Final Report Methodology.docx"):
     """
     Initializes the pipeline by:
-      - Loading the JSON data and converting it to a DataFrame.
-      - Creating Document objects for RAG.
-      - Setting up the LLM, embeddings, vector store, retriever, and chains.
-      - Creating a classifier chain and a unified ask() function.
-      
-    Returns:
-      ask (function): A function that accepts a query string and returns an answer.
+      - Loading Word doc and converting it into Langchain Documents.
+      - Creating a vector store from it.
+      - Initializing pandas agent from df.
+      - Setting up classifier and answer reranking.
     """
+
     # -----------------------------
-    # Load & Prepare JSON Data
+    # Load & Process Word Document
     # -----------------------------
-    with open(json_path, "r") as f:
-        data = json.load(f)
+    raw_text = ""
+    doc = DocxDocument(docx_path)
+    for para in doc.paragraphs:
+        if para.text.strip():
+            raw_text += para.text.strip() + "\n"
 
-    records = []
-    docs = []
-
-    for id_, entry in data.items():
-        flat = {"ID": id_}
-        flat.update(entry)
-        records.append(flat)
-
-        # Create a text version for RAG documents
-        text = f"ID: {id_}\n"
-        for k, v in entry.items():
-            if isinstance(v, list):
-                text += f"{k}: {', '.join(map(str, v))}\n"
-            else:
-                text += f"{k}: {v}\n"
-        docs.append(Document(page_content=text))
-
-    df = pd.DataFrame(records)
-    df=pd.read_csv('LDP_summary.csv')
-    df=df[['ID', 'Leader', 'Position', 'LIS', 'EQ', 'Typology 1', '# Dashboard','Skills_Below_Threshold','Should_be_promoted','Engagement Score']]
+# Split the raw text into manageable chunks for embedding
+    text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1500,
+    chunk_overlap=200
+)
+    chunks = text_splitter.split_text(raw_text)
+    docs = [Document(page_content=chunk) for chunk in chunks]  # try with first 30 only
+    # -----------------------------
+    # Load DataFrame from CSV
+    # -----------------------------
+    df = pd.read_csv('LDP_summary.csv')
+    df = df[['ID', 'Leader', 'Position', 'LIS', 'EQ', 'Typology 1',
+             '# Dashboard', 'Skills_Below_Threshold', 'Should_be_promoted',
+             'Engagement Score', 'Dashboard Number']]
 
     # -----------------------------
     # LLM & Embeddings
     # -----------------------------
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest")
-    embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest")
+    embedding = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-mpnet-base-v2"
+)
     # -----------------------------
     # RAG Setup
     # -----------------------------
@@ -435,13 +444,13 @@ def initialize_pipeline(json_path="result.json"):
             documents=docs,
             embedding=embedding,
             collection_name='ldp_docs',
-            persist_directory="./chroma_db"
+            persist_directory="./chroma_db",
         )
 
         vectorstore.persist()
         print("💾 Chroma DB persisted to disk.")
     
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 20})
 
     # Custom prompt for the RAG chain
     context_prompt = PromptTemplate.from_template("""
@@ -457,23 +466,25 @@ Question:
 
 Answer by combining insights across individuals. Focus on patterns, averages, and summaries. If no useful context is found, say "Not enough information."
 """)
-    llm_chain = LLMChain(llm=llm, prompt=context_prompt)
 
     # Using StuffDocumentsChain to combine documents into context
     from langchain.chains.combine_documents.stuff import StuffDocumentsChain as CombineStuffDocumentsChain
-    stuff_chain = CombineStuffDocumentsChain(
-        llm_chain=llm_chain,
-        document_variable_name="context"
-    )
+    stuff_chain = create_stuff_documents_chain(
+    llm=llm,
+    prompt=context_prompt,
+    document_variable_name="context"
+)
     
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 
-    rag_chain = RetrievalQA(
-        retriever=retriever,
-        combine_documents_chain=stuff_chain,
-        memory=memory
-    )
+    rag_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",  # Explicitly specify the chain type
+    retriever=retriever,
+    input_key="query",
+    memory=memory
+)
 
     # -----------------------------
     # Pandas Agent Setup
@@ -496,36 +507,31 @@ If you write Python code to find someone, include both the value and label in th
     classifier_prompt = PromptTemplate.from_template("""
 You are a smart classifier. Given a user question, decide if it should be handled using:
 
-- "structured" → if it's about rankings, filters, math, comparisons, scores
-- "semantic" → if it's about summaries, meaning, types of skills, descriptions
+- "structured" → if it's about rankings, filters, math, comparisons, scores, who should be promoted, etc.
+- "semantic" → if it's about summaries, meaning, types of skills, descriptions. Anything that has to do with insights is semantic as well
 
 Return ONLY the word "structured" or "semantic".
 
 Question: {query}
 """)
-    classifier_chain = LLMChain(llm=llm, prompt=classifier_prompt)
+    classifier_chain = classifier_prompt | llm
 
     # -----------------------------
     # Unified Ask Function
     # -----------------------------
     def ask(query: str) -> str:
-        # 1. Route the query
-        route = classifier_chain.run({"query": query}).strip().lower()
+        route_output = classifier_chain.invoke({"query": query})
+        route = route_output.content.strip().lower()
         print(f"[Routing → {route}]")
-
-        # 2. Set weights
-        structured_weight = 0.75 if route == "structured" else 0.25
-        semantic_weight = 0.75 if route == "semantic" else 0.25
-
-        # 3. STRUCTURED answer
-        structured_text = ""
-        try:
-            buffer = io.StringIO()
-            with contextlib.redirect_stdout(buffer):
+        
+        if route == "structured":
+            f = io.StringIO()
+            with redirect_stdout(f):
                 _ = pandas_agent.run(query)
-            structured_trace = buffer.getvalue().strip()
-            print(f"[Structured Trace]\n{structured_trace}")
 
+            raw_result = f.getvalue()
+            print(f"[Agent Trace]\n{raw_result}")
+            # Use an LLM chain to rephrase the full chain trace into a natural response.
             rephrase_prompt = PromptTemplate.from_template("""
 You are an expert data analyst and storyteller. Below is the full trace of how a pandas agent processed a query, including its thoughts, actions, and the final answer.
 
@@ -535,40 +541,19 @@ Full Agent Trace:
 The user's original question was:
 "{query}"
 
-Generate a complete, natural-sounding answer that includes exact names, scores, and reasoning.
+Based on this trace, generate a natural, complete sentence that states the final answer along with all relevant details. 
+In particular, if the agent identified a person with the highest LIS and a numerical score, include the person's full name, the exact LIS score, and any other useful context.
+For example, instead of just saying "William Smullen", your answer should be like: "William Smullen achieved the highest LIS of 92.615."
 """)
-            rephrase_chain = LLMChain(llm=llm, prompt=rephrase_prompt)
-            structured_response = rephrase_chain.invoke({
-                "raw_result": structured_trace,
-                "query": query
-            })
-            structured_text = structured_response.get("text", "").strip()
-
-        except Exception as e:
-            print(f"[Structured Agent Error] {e}")
-            structured_text = ""
-
-        # 4. SEMANTIC answer
-        try:
-            semantic_text = rag_chain.run(query).strip()
-        except Exception as e:
-            print(f"[Semantic Error] {e}")
-            semantic_text = ""
-
-        # 5. Fallbacks / Merge Logic
-        if structured_text and semantic_text:
-            if route == "structured":
-                return f"{structured_text}\n\n(Additional insight): {semantic_text}"
-            elif route == "semantic":
-                return f"{semantic_text}\n\n(Data insight): {structured_text}"
-            else:
-                return f"{structured_text}\n\n---\n{semantic_text}"
-        elif structured_text:
-            return structured_text
-        elif semantic_text:
-            return semantic_text
+            rephrase_chain = rephrase_prompt | llm
+            natural_result = rephrase_chain.invoke({"raw_result": raw_result, "query": query})
+            
+            return natural_result.content
+        elif route == "semantic":
+            response = rag_chain.invoke({"query": query})
+            return str(response["result"]).strip()
         else:
-            return "Sorry, I couldn't answer that based on the current data."
+            return "Sorry, I couldn't confidently classify your question."
 
     return ask
 
@@ -633,27 +618,38 @@ def dynamic_sidebar_filters(df):
 
         # 1. Dashboard filter (no dependencies at this point)
         all_dashboards = sorted(df["# Dashboard"].dropna().unique())
-        selected_dashboards = st.multiselect("Select Dashboard(s)", all_dashboards)
+        selected_dashboards = st.multiselect("Select Dashboard(s)", all_dashboards, key="Select Dashboard(s)", help="Select one or more dashboards to filter the data.")
 
         # 2. Filter DataFrame based on selected dashboards (if any)
         df_dash_filtered = df[df["# Dashboard"].isin(selected_dashboards)] if selected_dashboards else df
 
         # 3. Position filter based on dashboards
         position_options = sorted(df_dash_filtered["Position"].dropna().unique()) if "Position" in df.columns else []
-        selected_positions = st.multiselect("Select Position(s)", position_options)
+        selected_positions = st.multiselect("Select Position(s)", position_options, help="Select one or more positions to filter the data.", key="Select Position(s)")
 
         # 4. Further filter DataFrame based on positions
         df_pos_filtered = df_dash_filtered[df_dash_filtered["Position"].isin(selected_positions)] if selected_positions else df_dash_filtered
 
         # 5. Individual filter based on dashboards + positions
         individual_options = sorted(df_pos_filtered["Leader"].dropna().unique()) if "Leader" in df.columns else []
-        selected_individuals = st.multiselect("Select Leader(s)", individual_options)
+        selected_individuals = st.multiselect("Select Leader(s)", individual_options, help="Select one or more leaders to filter the data.", key="Select Leader(s)")
 
         df_type_filtered = df_dash_filtered[df_dash_filtered["Leader"].isin(selected_individuals)] if selected_individuals else df_dash_filtered
 
         # 5. Individual filter based on dashboards + positions
         type_options = sorted(df_type_filtered["Typology 1"].dropna().unique()) if "Typology 1" in df.columns else []
-        selected_type = st.multiselect("Select Type(s)", type_options)
+        selected_type = st.multiselect("Select Type(s)", type_options, help="Select one or more types to filter the data.", key="Select Type(s)")
+
+        # Checkbox to toggle "All Leaders selected" state
+        all_selected = not any([selected_dashboards, selected_positions, selected_individuals, selected_type])
+        toggle_all = st.checkbox("All Leaders selected", value=all_selected)
+
+        # If checkbox is unchecked by user (i.e. filters applied, but then unticked), reset all selections
+        if toggle_all and not all_selected:
+            selected_dashboards.clear()
+            selected_positions.clear()
+            selected_individuals.clear()
+            selected_type.clear()
 
     # --- Final filtering: apply all selected filters together ---
     df_filtered = df.copy()
@@ -740,35 +736,56 @@ def plot_resource_distribution_by_category(df):
 
 
 
+import plotly.express as px
+
 def plot_top_resources_by_category(df, category, top_n=8):
-    # Filter by the selected resource category
+    """
+    Plots a vertical bar chart of the top N most frequent resources within a given category.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame with at least 'Resource Type' and 'Resource Text' columns.
+    - category (str): The resource category to filter on.
+    - top_n (int): The number of top resources to show.
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Vertical bar chart of top resources.
+    - top_resources (pd.DataFrame): DataFrame of top resource texts and their counts.
+    """
+    # Filter by selected resource category
     filtered_df = df[df['Resource Type'] == category]
 
     if filtered_df.empty:
         print(f"No resources found for category: {category}")
-        return
+        return None, None
 
-    # Count most frequent Resource Texts
+    # Count top resources
     top_resources = (
         filtered_df['Resource Text']
         .value_counts()
         .head(top_n)
         .reset_index()
     )
-    top_resources.columns = ['Resource Text', 'Count']  # Explicitly rename columns
+    top_resources.columns = ['Resource Text', 'Count']
+    top_resources['Resource Text'] = top_resources['Resource Text'].apply(
+    lambda x: '<br>'.join(x[i:i+20] for i in range(0, len(x), 20))
+)
 
-    # Plot with Plotly
+    # Create vertical bar chart
     fig = px.bar(
         top_resources,
-        x='Count',
-        y='Resource Text',
-        orientation='h',
+        x='Resource Text',
+        y='Count',
         title=f"Top {top_n} Most Recurrent Resources in '{category}'",
+        text_auto=True,
         height=500
     )
 
-    fig.update_layout(yaxis=dict(autorange='reversed'))  # highest at top
+    fig.update_layout(
+    xaxis_tickangle=20,
+   xaxis_tickfont=dict(size=10)
+)
     return fig, top_resources
+
 
 
 def plot_leaders_below_threshold(group, top_n=10, selected_skill=None):
@@ -818,14 +835,14 @@ def plot_leaders_below_threshold(group, top_n=10, selected_skill=None):
 import pandas as pd
 import plotly.express as px
 
-def plot_top_performers_by_skill(df, skill=None, top_n=5, bar_color="#636EFA"):
+def plot_top_performers_by_skill(df, skill=None, percentile=0.9, bar_color="#636EFA"):
     """
-    Plots a clean bar chart showing the top N unique performers for a selected skill.
+    Plots a clean bar chart showing the top X% performers for a selected skill, including tied scores.
 
     Parameters:
     - df (pd.DataFrame): DataFrame containing at least 'Leader', 'Skill', and 'Score' columns.
     - skill (str or None): Specific skill to filter by. If None, no plot is returned.
-    - top_n (int): Number of top performers to display (default is 5).
+    - percentile (float): Percentile threshold (e.g., 0.9 for top 10%) (default is 0.9).
     - bar_color (str): Hex color code for the bars (default is Plotly's gray-blue).
 
     Returns:
@@ -842,19 +859,20 @@ def plot_top_performers_by_skill(df, skill=None, top_n=5, bar_color="#636EFA"):
         print(f"No data found for skill: {skill}")
         return None, pd.DataFrame()
 
-    # Ensure unique leaders by taking the max score per leader
-    unique_leader_scores = (
-        filtered_df.groupby('Leader', as_index=False)['Score']
-        .max()
-        .sort_values(by='Score', ascending=False)
-        .head(top_n)
-    )
+    # Max score per leader to avoid duplicates
+    unique_leader_scores = filtered_df.groupby('Leader', as_index=False)['Score'].max()
+
+    # Compute cutoff based on percentile
+    threshold = unique_leader_scores['Score'].quantile(percentile)
+
+    # Filter top performers (including ties)
+    top_performers_df = unique_leader_scores[unique_leader_scores['Score'] >= threshold].sort_values(by='Score', ascending=False)
 
     fig = px.bar(
-        unique_leader_scores,
+        top_performers_df,
         x='Leader',
         y='Score',
-        title=f"Top {top_n} Performers in '{skill}'",
+        title=f"Top 10% Performers in '{skill}'",
         text='Score'
     )
 
@@ -869,21 +887,20 @@ def plot_top_performers_by_skill(df, skill=None, top_n=5, bar_color="#636EFA"):
         margin=dict(t=60, b=40),
     )
 
-    return fig, unique_leader_scores
+    return fig, top_performers_df
 
 
 
 
 
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
 
-def build_histogram_with_leaders(df):
+def build_histogram_with_leaders_eq(df, highlight_leaders=None):
     '''
-    Expects a DataFrame with columns: 'LIS' and 'Leader'
+    Expects:
+        - df with columns: 'LIS' and 'Leader'
+        - highlight_leaders (optional): list of leader names to highlight
     '''
-    lis_data = df['LIS']
+    lis_data = df['EQ']
     leaders = df['Leader']
     
     # Stats
@@ -892,43 +909,86 @@ def build_histogram_with_leaders(df):
     std_low = mean_lis - 1.5 * std_lis
     std_high = mean_lis + 1.5 * std_lis
 
-    # Bin the LIS data manually into 20 bins
-    bin_counts, bin_edges = np.histogram(lis_data, bins=20)
-    bin_labels = [f"{int(left)}–{int(right)}" for left, right in zip(bin_edges[:-1], bin_edges[1:])]
+    # Bin the LIS data
+    bin_counts, bin_edges = np.histogram(lis_data, bins=45)
+    bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
 
-    # Assign each row to a bin
-    df['LIS_bin'] = pd.cut(df['LIS'], bins=bin_edges, labels=bin_labels, include_lowest=True, ordered=False)
+    bin_indices = np.digitize(lis_data, bin_edges, right=False) - 1
+    bin_indices = np.clip(bin_indices, 0, len(bin_centers) - 1)
+    df['EQ_bins'] = bin_centers[bin_indices]
 
-    # Group by bin: count and leader names
-    grouped = df.groupby('LIS_bin').agg({
+    # Group leaders per bin
+    grouped = df.groupby('EQ_bins').agg({
         'Leader': lambda x: ', '.join(sorted(set(x))),
-        'LIS': 'count'
-    }).reset_index().rename(columns={'LIS': 'Count'})
+        'EQ': 'count'
+    }).reset_index().rename(columns={'EQ': 'Count'})
 
-    # Build bar plot with hover info
+    # Default bar color
+    bar_colors = ['darkblue'] * len(grouped)
+
+    # Highlight bins if leaders selected
+    if highlight_leaders:
+        highlight_leaders = set([l.strip().lower() for l in highlight_leaders])
+        for i, center in enumerate(grouped['EQ_bins']):
+            leaders_in_bin = set(map(str.lower, df[df['EQ_bins'] == center]['Leader']))
+            if highlight_leaders & leaders_in_bin:
+                bar_colors[i] = 'crimson'
+
+    # Build the plot
     fig = go.Figure()
+
     fig.add_trace(go.Bar(
-        x=grouped['LIS_bin'],
+        x=grouped['EQ_bins'],
         y=grouped['Count'],
         customdata=grouped['Leader'],
-        marker_color='darkblue',
-        hovertemplate='<b>LIS Range:</b> %{x}<br>' +
+        marker_color=bar_colors,
+        name='EQ Distribution',
+        hovertemplate='<b>LIS Center:</b> %{x}<br>' +
                       '<b>Count:</b> %{y}<br>' +
                       '<b>Leaders:</b> %{customdata}<extra></extra>'
     ))
 
+    # Bell curve
+    x_vals = np.linspace(min(lis_data), max(lis_data), 500)
+    y_vals = (
+        (1 / (std_lis * np.sqrt(2 * np.pi))) *
+        np.exp(-0.5 * ((x_vals - mean_lis) / std_lis) ** 2)
+    )
+    y_scaled = y_vals * max(grouped['Count']) / max(y_vals)
+
+    fig.add_trace(go.Scatter(
+        x=x_vals,
+        y=y_scaled,
+        mode='lines',
+        name='Normal Curve',
+        line=dict(color='orange', dash='dash')
+    ))
+
+    # Vertical lines
+    for val, label, color in zip([mean_lis, std_low, std_high],
+                                 ['Mean', '-1.5 Std', '+1.5 Std'],
+                                 ['green', 'red', 'red']):
+        fig.add_vline(
+            x=val,
+            line=dict(color=color, dash='dot'),
+            annotation_text=label,
+            annotation_position="top",
+            annotation_font_color=color
+        )
 
     fig.update_layout(
-        title="Leadership Index Score (LIS) Distribution",
-        xaxis_title="LIS Score Range",
+        title="Leadership Index Score (LIS) Distribution with Highlight",
+        xaxis_title="LIS Score",
         yaxis_title="Number of People",
         template="plotly_white",
-        width=800,
-        height=450,
-        margin=dict(t=50, b=50, l=50, r=50)
+        width=850,
+        height=500,
+        margin=dict(t=60, b=50, l=60, r=40),
+        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.01)
     )
 
-    # Summary stats
+
+        # Summary stats
     summary_stats = {
         "mean": mean_lis,
         "std_dev": std_lis,
@@ -941,4 +1001,295 @@ def build_histogram_with_leaders(df):
         "above_1.5_std": np.sum(lis_data > std_high)
     }
 
-    return fig
+    return fig, summary_stats
+
+
+def build_histogram_with_leaders(df, highlight_leaders=None):
+    '''
+    Expects:
+        - df with columns: 'LIS' and 'Leader'
+        - highlight_leaders (optional): list of leader names to highlight
+    '''
+    lis_data = df['LIS']
+    leaders = df['Leader']
+    
+    # Stats
+    mean_lis = np.mean(lis_data)
+    std_lis = np.std(lis_data)
+    std_low = mean_lis - 1.5 * std_lis
+    std_high = mean_lis + 1.5 * std_lis
+
+    # Bin the LIS data
+    bin_counts, bin_edges = np.histogram(lis_data, bins=20)
+    bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+
+    bin_indices = np.digitize(lis_data, bin_edges, right=False) - 1
+    bin_indices = np.clip(bin_indices, 0, len(bin_centers) - 1)
+    df['LIS_bin_center'] = bin_centers[bin_indices]
+
+    # Group leaders per bin
+    grouped = df.groupby('LIS_bin_center').agg({
+        'Leader': lambda x: ', '.join(sorted(set(x))),
+        'LIS': 'count'
+    }).reset_index().rename(columns={'LIS': 'Count'})
+
+    # Default bar color
+    bar_colors = ['darkblue'] * len(grouped)
+
+    # Highlight bins if leaders selected
+    if highlight_leaders:
+        highlight_leaders = set([l.strip().lower() for l in highlight_leaders])
+        for i, center in enumerate(grouped['LIS_bin_center']):
+            leaders_in_bin = set(map(str.lower, df[df['LIS_bin_center'] == center]['Leader']))
+            if highlight_leaders & leaders_in_bin:
+                bar_colors[i] = 'crimson'
+
+    # Build the plot
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        x=grouped['LIS_bin_center'],
+        y=grouped['Count'],
+        customdata=grouped['Leader'],
+        marker_color=bar_colors,
+        name='LIS Distribution',
+        hovertemplate='<b>LIS Center:</b> %{x}<br>' +
+                      '<b>Count:</b> %{y}<br>' +
+                      '<b>Leaders:</b> %{customdata}<extra></extra>'
+    ))
+
+    # Bell curve
+    x_vals = np.linspace(min(lis_data), max(lis_data), 500)
+    y_vals = (
+        (1 / (std_lis * np.sqrt(2 * np.pi))) *
+        np.exp(-0.5 * ((x_vals - mean_lis) / std_lis) ** 2)
+    )
+    y_scaled = y_vals * max(grouped['Count']) / max(y_vals)
+
+    fig.add_trace(go.Scatter(
+        x=x_vals,
+        y=y_scaled,
+        mode='lines',
+        name='Normal Curve',
+        line=dict(color='orange', dash='dash')
+    ))
+
+    # Vertical lines
+    for val, label, color in zip([mean_lis, std_low, std_high],
+                                 ['Mean', '-1.5 Std', '+1.5 Std'],
+                                 ['green', 'red', 'red']):
+        fig.add_vline(
+            x=val,
+            line=dict(color=color, dash='dot'),
+            annotation_text=label,
+            annotation_position="top",
+            annotation_font_color=color
+        )
+
+    fig.update_layout(
+        title="Leadership Index Score (LIS) Distribution with Highlight",
+        xaxis_title="LIS Score",
+        yaxis_title="Number of People",
+        template="plotly_white",
+        width=850,
+        height=500,
+        margin=dict(t=60, b=50, l=60, r=40),
+        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.01)
+    )
+
+
+        # Summary stats
+    summary_stats = {
+        "mean": mean_lis,
+        "std_dev": std_lis,
+        "1.5_std_below": std_low,
+        "1.5_std_above": std_high,
+        "min_value": np.min(lis_data),
+        "max_value": np.max(lis_data),
+        "count": len(lis_data),
+        "below_1.5_std": np.sum(lis_data < std_low),
+        "above_1.5_std": np.sum(lis_data > std_high)
+    }
+
+    return fig, summary_stats
+
+
+
+def plot_typology_distribution(df):
+    """
+    Plot the distribution of 'Typology 1' as a pie chart without using red.
+
+    Parameters:
+    - df: pd.DataFrame, the input dataframe
+    """
+    if 'Typology 1' in df.columns:
+        typology_counts = df['Typology 1'].value_counts().reset_index()
+        typology_counts.columns = ['Typology', 'Count']
+
+        # Custom colors (excluding red)
+        custom_colors = [
+            '#636EFA',  # blue
+            '#00CC96',  # green
+            '#AB63FA',  # purple
+            '#FFA15A',  # orange (soft, not red)
+            '#19D3F3',  # light blue
+            '#B6E880',  # lime green
+            '#FFB6C1',  # pinkish (but not true red)
+            '#FECB52'   # yellow
+        ]
+
+        typologies = typology_counts['Typology'].unique()
+        color_map = {typ: custom_colors[i % len(custom_colors)] for i, typ in enumerate(typologies)}
+
+        fig_typ_dist = px.pie(
+            typology_counts,
+            names='Typology',
+            values='Count',
+            title='Leadership Typology Distribution',
+            color='Typology',
+            color_discrete_map=color_map
+        )
+
+        return fig_typ_dist, typology_counts
+    
+
+
+
+
+
+def plot_strongest_and_weakest_skills(filtered_df, top_n=7):
+    """
+    Generates two bar plots:
+    - Top N Strongest Skills by Average Score
+    - Top N Weakest Skills by Average Score
+
+    Parameters:
+    - filtered_df (pd.DataFrame): DataFrame with 'Skill' and 'Score' columns.
+    - top_n (int): Number of top skills to display in each chart.
+
+    Returns:
+    - fig_strong (plotly.graph_objs._figure.Figure): Plot of strongest skills.
+    - fig_weak (plotly.graph_objs._figure.Figure): Plot of weakest skills.
+    - strongest_df (pd.DataFrame): DataFrame of strongest skills and average scores.
+    - weakest_df (pd.DataFrame): DataFrame of weakest skills and average scores.
+    """
+    
+    # Strongest skills by average score
+    strongest_df = (
+        filtered_df.groupby("Skill")["Score"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(top_n)
+        .reset_index()
+    )
+
+    fig_strong = px.bar(
+        strongest_df,
+        x="Skill",
+        y="Score",
+        title=f"Top {top_n} Strongest Skills by Average Score",
+        labels={"Score": "Average Score"},
+        text_auto=True
+    )
+
+    fig_strong.update_layout(width=800, height=500)
+
+
+    # Weakest skills by average score
+    weakest_df = (
+        filtered_df.groupby("Skill")["Score"]
+        .mean()
+        .sort_values()
+        .head(top_n)
+        .reset_index()
+    )
+
+    fig_weak = px.bar(
+        weakest_df,
+        x="Skill",
+        y="Score",
+        title=f"Top {top_n} Weakest Skills by Average Score",
+        labels={"Score": "Average Score"},
+        text_auto=True
+    )
+    fig_weak.update_layout(width=800, height=530)
+
+
+    return fig_strong, fig_weak, strongest_df, weakest_df
+
+
+
+import plotly.express as px
+
+def plot_training_buckets_per_skill(filtered_df):
+    """
+    Generates a stacked bar plot for the training buckets per skill and proficiency level,
+    with sorting and custom colors for the proficiency levels.
+
+    Parameters:
+    - filtered_df (pd.DataFrame): DataFrame containing 'Skill', 'Level', and 'DASH ID' columns.
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): The stacked bar plot figure.
+    - summary_stat (pd.DataFrame): Summary of the count of training buckets per skill and proficiency level.
+    """
+    # Calculate counts of skills per level
+    skill_level_counts = (
+        filtered_df.groupby(['Skill', 'Level'])
+        .size()
+        .reset_index(name='Count')
+    )
+
+    # Sort the skill_level_counts by the 'Count' column in descending order
+    skill_level_counts = skill_level_counts.sort_values(by='Count', ascending=False)
+
+    # Define a custom color scale with 'Beginner' as red
+    color_scale = {'Beginner (0-59)': 'red', 'Intermediate (60-74)': 'orange', 'Advanced (75-100)': 'green'}
+
+    # Create the bar plot
+    fig = px.bar(
+        skill_level_counts,
+        x="Skill",
+        y="Count",
+        color="Level",
+        title="Training Buckets per Skill and Proficiency Level",
+        barmode="stack",
+        color_discrete_map=color_scale
+    )
+    fig.update_layout(xaxis_tickangle=45, height=600)
+
+    return fig, skill_level_counts
+
+
+
+def plot_recommended_resources_by_skill(personal_data, selected_leader):
+    """
+    Plots the number of recommended resources per skill for a given leader.
+
+    Parameters:
+    - personal_data (pd.DataFrame): DataFrame containing 'Skill' and 'Resource Text' columns.
+    - selected_leader (str): The name of the leader to display in the title.
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): Bar plot of resource counts per skill.
+    - resource_count (pd.DataFrame): DataFrame of skills and their corresponding resource count.
+    """
+    # Count resources per skill
+    resource_count = (
+        personal_data.groupby("Skill")["Resource Text"]
+        .count()
+        .reset_index()
+        .rename(columns={"Resource Text": "Resource Count"})
+        .sort_values(by="Resource Count", ascending=False)
+    )
+
+    # Create bar plot
+    fig = px.bar(
+        resource_count,
+        x="Skill",
+        y="Resource Count",
+        title=f"Recommended Resources by Skill for {selected_leader}",
+        text_auto=True
+    )
+
+    return fig, resource_count
