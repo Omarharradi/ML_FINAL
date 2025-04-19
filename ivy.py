@@ -53,6 +53,19 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CR
 
 GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
 
+# Force white theme via injected CSS
+st.markdown("""
+    <style>
+        body, .main, .block-container {
+            background-color: white !important;
+            color: black !important;
+        }
+        .stApp {
+            background-color: white !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Load data and skills mapping
 df = pd.read_csv('LDP_summary.csv')
 df['Dashboard Number'] = df['# Dashboard'].str.split(':', n=1).str[0].str.strip()
@@ -376,7 +389,7 @@ st.markdown(f"""
     .label {{
         flex: 1;
         text-align: center;
-        font-size: 12px;
+        font-size: 14px;
         min-width: 100px;
         padding: 5px;}}
     </style>
@@ -423,6 +436,7 @@ with st.container():
     selected_leaders_eq = st.multiselect("Highlight specific leaders", df['Leader'].unique(), key="eq_leader_selector", help="Select one or more leaders to highlight them on the chart.")
     hist_fig_eq, hist_summary_eq = build_histogram_with_leaders_eq(df_filtered, highlight_leaders=selected_leaders_eq)
     st.plotly_chart(hist_fig_eq, use_container_width=True)
+    print(hist_summary_eq)
     display_insight("hist_eq", build_histogram_with_leaders_eq, hist_summary_eq, llm, "Insights for EQ Histogram")
 
 st.markdown("---")

@@ -507,8 +507,8 @@ If you write Python code to find someone, include both the value and label in th
     classifier_prompt = PromptTemplate.from_template("""
 You are a smart classifier. Given a user question, decide if it should be handled using:
 
-- "structured" → if it's about rankings, filters, math, comparisons, scores, who should be promoted, etc.
-- "semantic" → if it's about summaries, meaning, types of skills, descriptions. Anything that has to do with insights is semantic as well
+- "structured" → if it's about rankings, filters, math, comparisons, scores, who should be promoted, etc. If the question is asking about who has the highest score, or if a specific leader is below a threshold, it's structured.
+- "semantic" → if it's about summaries, meaning, types of skills, descriptions. Anything that has to do with insights is semantic as well. Basically, if the question is not about who (which leader, position or dashboard) it is most likely semantic. Any other question that is not about a specific leader, position or dashboard is semantic.
 
 Return ONLY the word "structured" or "semantic".
 
@@ -897,7 +897,7 @@ def plot_top_performers_by_skill(df, skill=None, percentile=0.9, bar_color="#636
 def build_histogram_with_leaders_eq(df, highlight_leaders=None):
     '''
     Expects:
-        - df with columns: 'LIS' and 'Leader'
+        - df with columns: 'EQ' and 'Leader'
         - highlight_leaders (optional): list of leader names to highlight
     '''
     lis_data = df['EQ']
@@ -943,7 +943,7 @@ def build_histogram_with_leaders_eq(df, highlight_leaders=None):
         customdata=grouped['Leader'],
         marker_color=bar_colors,
         name='EQ Distribution',
-        hovertemplate='<b>LIS Center:</b> %{x}<br>' +
+        hovertemplate='<b>EQ Center:</b> %{x}<br>' +
                       '<b>Count:</b> %{y}<br>' +
                       '<b>Leaders:</b> %{customdata}<extra></extra>'
     ))
@@ -977,8 +977,8 @@ def build_histogram_with_leaders_eq(df, highlight_leaders=None):
         )
 
     fig.update_layout(
-        title="Leadership Index Score (LIS) Distribution with Highlight",
-        xaxis_title="LIS Score",
+        title="EQ Distribution with Highlight",
+        xaxis_title="EQ Score",
         yaxis_title="Number of People",
         template="plotly_white",
         width=850,
