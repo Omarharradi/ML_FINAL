@@ -327,18 +327,18 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("### 🔹")
-    st.markdown("**Typology A leads EQ**")
-    st.markdown("Higher average EQ scores than other typologies.")
+    st.markdown("**Leadership Fit is strong overall - But 8 leaders require Training**")
+    st.markdown("85% of leaders score above LIS 70, but 9.4% are considered outliers")
 
 with col2:
     st.markdown("### 🔸")
-    st.markdown("**Project Mgmt Weak Spot**")
-    st.markdown("Often falls below the critical threshold.")
+    st.markdown("**Mentoring Leaders Dominate - and Excel**")
+    st.markdown("35.3% of leaders are classified as Mentoring Leaders, making it the largest typology.")
 
 with col3:
     st.markdown("### 🌟")
-    st.markdown("**Top LIS Performers**")
-    st.markdown("A small elite group consistently excels.")
+    st.markdown("**Emotional Intelligence Is the Most Consistent Development Need**")
+    st.markdown("82 leaders were flagged for EQ development-making it the most widespread gap.")
 
 st.markdown("---")
 st.header("Do all Leaders fit")
