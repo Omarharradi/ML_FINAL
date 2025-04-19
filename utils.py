@@ -507,8 +507,8 @@ If you write Python code to find someone, include both the value and label in th
     classifier_prompt = PromptTemplate.from_template("""
 You are a smart classifier. Given a user question, decide if it should be handled using:
 
-- "structured" → if it's about rankings, filters, math, comparisons, scores, who should be promoted, etc. If the question is asking about who has the highest score, or if a specific leader is below a threshold, it's structured.
-- "semantic" → if it's about summaries, meaning, types of skills, descriptions. Anything that has to do with insights is semantic as well. Basically, if the question is not about who (which leader, position or dashboard) it is most likely semantic. Any other question that is not about a specific leader, position or dashboard is semantic.
+- "structured" → if it's about rankings, filters, math, comparisons, scores, means, who should be promoted, etc. If the question is asking about who has the highest score, or if a specific leader is below a threshold, it's structured.
+- "semantic" → if it's about summaries, meaning, types of skills, descriptions. Anything that has to do with insights is semantic as well. Basically, if the question is not about who (which leader, position or dashboard) it is most likely semantic. Any other question that is not about a specific leader, position or dashboard or about getting statistics like the mean is semantic.
 
 Return ONLY the word "structured" or "semantic".
 
@@ -541,9 +541,9 @@ Full Agent Trace:
 The user's original question was:
 "{query}"
 
-Based on this trace, generate a natural, complete sentence that states the final answer along with all relevant details. 
+Based on this trace, generate a natural, complete sentence that states the final answer along with all relevant details. Do not only look at the final answer but also at the code output and make sure you match the query.
 In particular, if the agent identified a person with the highest LIS and a numerical score, include the person's full name, the exact LIS score, and any other useful context.
-For example, instead of just saying "William Smullen", your answer should be like: "William Smullen achieved the highest LIS of 92.615."
+For example, instead of just saying "William Smullen", your answer should be like: "William Smullen achieved the highest LIS of 92.615. Never say something like "The trace doesn't provide information", do not talk about the trace"
 """)
             rephrase_chain = rephrase_prompt | llm
             natural_result = rephrase_chain.invoke({"raw_result": raw_result, "query": query})
