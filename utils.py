@@ -530,7 +530,7 @@ Question: {query}
                 _ = pandas_agent.run(query)
 
             raw_result = f.getvalue()
-            print(f"[Agent Trace]\n{raw_result}")
+            print("DF rows:", len(df))
             # Use an LLM chain to rephrase the full chain trace into a natural response.
             rephrase_prompt = PromptTemplate.from_template("""
 You are an expert data analyst and storyteller. Below is the full trace of how a pandas agent processed a query, including its thoughts, actions, and the final answer.

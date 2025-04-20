@@ -84,7 +84,11 @@ with open("skills_mapping_renamed.json", "r") as f:
 def get_pipeline_cached():
     return initialize_pipeline()
 
-@st.cache_resource
+def get_pipeline_uncached():
+    return initialize_pipeline()
+
+
+#@st.cache_resource
 def get_llm():
     return ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest")
 
@@ -195,7 +199,8 @@ def handle_message():
 
         # Get assistant response
         with st.spinner("Thinking..."):
-            ask = get_pipeline_cached()
+            #ask = get_pipeline_cached()
+            ask = get_pipeline_uncached()
             response = ask(user_msg)
 
         st.session_state.chat_history.append({"role": "assistant", "content": response})
