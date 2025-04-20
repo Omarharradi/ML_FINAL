@@ -533,17 +533,17 @@ Question: {query}
             print("DF rows:", len(df))
             # Use an LLM chain to rephrase the full chain trace into a natural response.
             rephrase_prompt = PromptTemplate.from_template("""
-You are an expert data analyst and storyteller. Below is the full trace of how a pandas agent processed a query, including its thoughts, actions, and the final answer.
+You are a data analyst assistant. Below is a trace from a data analysis agent that includes steps, logic, and results.
 
-Full Agent Trace:
+Full Trace:
 {raw_result}
 
-The user's original question was:
+The user asked:
 "{query}"
 
-Based on this trace, generate a natural, complete sentence that states the final answer along with all relevant details. Do not only look at the final answer but also at the code output and make sure you match the query.
-In particular, if the agent identified a person with the highest LIS and a numerical score, include the person's full name, the exact LIS score, and any other useful context.
-For example, instead of just saying "William Smullen", your answer should be like: "William Smullen achieved the highest LIS of 92.615. Never say something like "The trace doesn't provide information", do not talk about the trace"
+Based on the trace, write a complete, accurate, and detailed response.
+If more than one individual is mentioned in the result, list all their full names and their LIS scores. Do not summarize unless it's accurate.
+Always reflect the exact values shown in the trace. Do not look at the last answer only look at full trace. Never mention the trace in the answer.
 """)
             rephrase_chain = rephrase_prompt | llm
             natural_result = rephrase_chain.invoke({"raw_result": raw_result, "query": query})
@@ -1244,8 +1244,11 @@ def plot_training_buckets_per_skill(filtered_df):
     skill_level_counts = skill_level_counts.sort_values(by='Count', ascending=False)
 
     # Define a custom color scale with 'Beginner' as red
-    color_scale = {'Beginner (0-59)': 'red', 'Intermediate (60-74)': 'orange', 'Advanced (75-100)': 'green'}
-
+    color_scale = {
+    'Beginner (0-59)': '#6BAED6',       # Light blue
+    'Intermediate (60-74)': '#3182BD',  # Medium blue
+    'Advanced (75-100)': '#08519C'      # Dark blue
+}
     # Create the bar plot
     fig = px.bar(
         skill_level_counts,
