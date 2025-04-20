@@ -341,7 +341,7 @@ def get_insights_chart(lis_data, source_code, llm):
     - Never fabricate interpretations — only base your insights on what is explicitly observable from the data and plot logic.
     - Be clear, thoughtful, and avoid assumptions.
 
-    Only return the final Markdown-formatted insight.
+    Only return the final Markdown-formatted insight. The tone should be for non-technical audience, make it simple.
 
     DataFrame:
     {Dataframe}
@@ -375,6 +375,8 @@ from docx import Document as DocxDocument
 from langchain.embeddings import HuggingFaceEmbeddings
 import io
 from contextlib import redirect_stdout
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
+from langchain.agents import Tool, AgentType, initialize_agent
 
 
 
@@ -415,7 +417,7 @@ def initialize_pipeline(docx_path="LDP Final Report Methodology.docx"):
     # -----------------------------
     # LLM & Embeddings
     # -----------------------------
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest")
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest")
     embedding = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-mpnet-base-v2"
 )
@@ -489,17 +491,64 @@ Answer by combining insights across individuals. Focus on patterns, averages, an
     # -----------------------------
     # Pandas Agent Setup
     # -----------------------------
-    pandas_agent = create_pandas_dataframe_agent(
-        llm=llm,
-        df=df,
-        verbose=True,
-        allow_dangerous_code=True,
-        agent_executor_kwargs={
-        "prefix": """You are a smart data assistant working with a DataFrame `df`.
-When users ask about highest scores or top performers, **always return both the name and the exact score**.
-If you write Python code to find someone, include both the value and label in the output."""
-    })
-    
+
+    # Initialize PythonAstREPLTool with df
+    python_tool = PythonAstREPLTool(locals={"df": df})
+
+# Define tools with improved description
+    tools = [
+    Tool.from_function(
+        name="Python DataFrame Tool",
+        func=python_tool.run,
+        description="Executes Python code to query the DataFrame `df`. Input must be valid Python code (e.g., `df.columns.tolist()` or `df[df['is_leader'] == True].shape[0]`). Use this to analyze or retrieve data from `df`. Do not redefine or simulate `df`."
+    )
+]
+
+    # Initialize agent with improved prefix
+    pandas_agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+    handle_parsing_errors=True,
+    agent_kwargs={
+            "prefix": """
+You are a smart data analyst assistant. You are working with a pandas DataFrame called `df`, which contains the results of a leadership development program.
+
+Each row in the DataFrame represents one unique individual (a leader).
+
+Here is an overview of the DataFrame structure:
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 85 entries, 0 to 84
+Data columns (total 11 columns):
+ 0   ID                      → Unique identifier for each leader
+ 1   Leader                  → Full name of the leader (string)
+ 2   Position                → The job title or current role of the leader
+ 3   LIS                     → Leadership Index Score (float). Ranges from 0 to 100. Higher means stronger leadership fit.
+ 4   EQ                      → Emotional Intelligence score (float). Ranges from 0 to 100.
+ 5   Typology 1              → Personality-based leadership typology (e.g., "The Mentoring Leader")
+ 6   # Dashboard             → Dashboard group name and context
+ 7   Skills_Below_Threshold  → Number of skill areas in which the leader scored below a critical threshold
+ 8   Should_be_promoted      → Boolean indicating whether the individual is recommended for promotion
+ 9   Engagement Score        → An engagement metric score (float, may have missing values)
+10  Dashboard Number         → Code for the dashboard group (e.g., D1, D2)
+
+General rules and instructions:
+- Do NOT create or assume the existence of new columns (e.g., no 'is_leader' or 'score_level').
+- Use only the actual columns listed above. You can always check them via `df.columns.tolist()` if needed.
+- Never simulate or redefine `df`. You are querying a real DataFrame already loaded.
+- Use proper Python code to analyze the DataFrame. Examples:
+    - To count total leaders: `len(df)`
+    - To find the average LIS: `df['LIS'].mean()`
+    - To get top performers: `df.sort_values('LIS', ascending=False).head(5)`
+    - To filter by condition: `df[df['LIS'] > 85]`
+
+Always reason step-by-step, and answer based only on what the DataFrame actually contains.
+If a user’s request is ambiguous, first examine the column names and structure before deciding how to proceed.
+"""
+}
+)
+
 
     # -----------------------------
     # Classifier to Route Query
@@ -525,26 +574,30 @@ Question: {query}
         print(f"[Routing → {route}]")
         
         if route == "structured":
-            f = io.StringIO()
-            with redirect_stdout(f):
-                _ = pandas_agent.run(query)
+            result = pandas_agent.run(query)
+            raw_result = f"Returned:\n{result}"
 
-            raw_result = f.getvalue()
-            print("DF rows:", len(df))
+            print("Raw result:", raw_result)            
             # Use an LLM chain to rephrase the full chain trace into a natural response.
             rephrase_prompt = PromptTemplate.from_template("""
-You are a data analyst assistant. Below is a trace from a data analysis agent that includes steps, logic, and results.
+You are a data analyst assistant. Below is a trace from a data analysis agent including thoughts, code, and printed results.
 
-Full Trace:
+Trace:
 {raw_result}
 
 The user asked:
 "{query}"
 
-Based on the trace, write a complete, accurate, and detailed response.
-If more than one individual is mentioned in the result, list all their full names and their LIS scores. Do not summarize unless it's accurate.
-Always reflect the exact values shown in the trace. Do not look at the last answer only look at full trace. Never mention the trace in the answer.
+Your job is to generate an accurate and complete answer based only on the actual printed numbers in the trace.
+- Ignore any 'Final Answer:' lines if they contradict the correct printed results.
+- Do not make assumptions or guess values.
+- Use names, values, and stats exactly as shown above.
+- Do not summarize or simplify unless the trace clearly does.
+- Do not talk about the trace or the agent.
+
+Write a clean and clear response.
 """)
+            print("Raw result:", rephrase_prompt)
             rephrase_chain = rephrase_prompt | llm
             natural_result = rephrase_chain.invoke({"raw_result": raw_result, "query": query})
             

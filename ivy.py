@@ -90,7 +90,7 @@ def get_pipeline_uncached():
 
 #@st.cache_resource
 def get_llm():
-    return ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest")
+    return ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest")
 
 llm = get_llm()
 
@@ -191,20 +191,18 @@ import streamlit as st
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# --- Handle Message Send ---
 def handle_message():
-    user_msg = st.session_state.temp_input
+    user_msg = st.session_state.get("temp_input", "")
     if user_msg:
         st.session_state.chat_history.append({"role": "user", "content": user_msg})
 
-        # Get assistant response
         with st.spinner("Thinking..."):
-            #ask = get_pipeline_cached()
-            ask = get_pipeline_uncached()
+            ask = get_pipeline_cached()
             response = ask(user_msg)
 
         st.session_state.chat_history.append({"role": "assistant", "content": response})
-        st.session_state.temp_input = ""  # clear input field
+        st.session_state.temp_input = ""  # Clear after submission
+
 
 # --- Chat Interface ---
 st.sidebar.markdown("---")
@@ -441,7 +439,6 @@ with st.container():
     selected_leaders_eq = st.multiselect("Highlight specific leaders", df['Leader'].unique(), key="eq_leader_selector", help="Select one or more leaders to highlight them on the chart.")
     hist_fig_eq, hist_summary_eq = build_histogram_with_leaders_eq(df_filtered, highlight_leaders=selected_leaders_eq)
     st.plotly_chart(hist_fig_eq, use_container_width=True)
-    print(hist_summary_eq)
     display_insight("hist_eq", build_histogram_with_leaders_eq, hist_summary_eq, llm, "Insights for EQ Histogram")
 
 st.markdown("---")
