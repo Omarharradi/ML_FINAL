@@ -251,7 +251,7 @@ st.sidebar.markdown("""
 #st.sidebar.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
 # Show last 5 messages only
-for msg in st.session_state.chat_history[-5:]:
+for msg in st.session_state.chat_history[-6:]:
     role_class = "user-message" if msg["role"] == "user" else "assistant-message"
     st.sidebar.markdown(
         f'<div class="chat-message {role_class}">{msg["content"]}</div>',
