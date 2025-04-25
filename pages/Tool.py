@@ -1,3 +1,4 @@
+### TOOL
 import sys
 import os
 import json
@@ -33,7 +34,9 @@ from utils import (
     plot_typology_distribution,
     plot_strongest_and_weakest_skills,
     plot_training_buckets_per_skill,
-    plot_recommended_resources_by_skill
+    plot_recommended_resources_by_skill,
+    plot_eq_leader_skills,
+    build_typology_bar_chart
 )
 
 # SQLite patch for compatibility
@@ -62,6 +65,9 @@ df['Leader'] = df['Last name'].str.strip() + ' ' + df['First name'].str.strip()
 df['EQ']=df['Overall Results']
 df['Link'] = "https://ivy-dashboard-4833f144eaf4.herokuapp.com/page-2?user_id=" + df['ID'].astype(str)
 df['Dashboard Link'] = df['Link'].apply(lambda x: f"[Open Dashboard]({x})")
+below70=pd.read_csv('below_70.csv')
+above85=pd.read_csv('above_85.csv')
+between_70_84=pd.read_csv('between_70_84.csv')
 
 resource=pd.read_csv('resources_summary.csv')
 
@@ -248,155 +254,9 @@ st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
 
 
-
-
-# Build HTML table
-html = """
-<style>
-.table-container {
-    height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-}
-th, td {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-a {
-    color: #1f77b4;
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
-</style>
-<div class="table-container">
-<table>
-    <thead>
-        <tr>
-            <th>Leader</th>
-            <th>Position</th>
-            <th>Dashboard Link</th>
-        </tr>
-    </thead>
-    <tbody>
-"""
-
-for _, row in df_filtered.iterrows():
-    html += f"""
-        <tr>
-            <td>{row['Leader']}</td>
-            <td>{row['Position']}</td>
-            <td><a href="{row['Link']}" target="_blank">Open Dashboard</a></td>
-        </tr>
-    """
-
-html += """
-    </tbody>
-</table>
-</div>
-"""
-
-st.markdown("<h1>Leadership Results Overview</h1>", unsafe_allow_html=True)
-st.markdown("This app displays interactive visualizations based on overall leadership competency levels.")
-
-st.header("All Leaders")
-components.html(html, height=350, scrolling=True)
-st.markdown("---")
-
-st.subheader("📊 Quick Insights")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("### 🔹")
-    st.markdown("**Typology A leads EQ**")
-    st.markdown("Higher average EQ scores than other typologies.")
-
-with col2:
-    st.markdown("### 🔸")
-    st.markdown("**Project Mgmt Weak Spot**")
-    st.markdown("Often falls below the critical threshold.")
-
-with col3:
-    st.markdown("### 🌟")
-    st.markdown("**Top LIS Performers**")
-    st.markdown("A small elite group consistently excels.")
-
 st.markdown("---")
 st.header("Do all Leaders fit")
 st.caption("ℹ️ This section shows key metrics to assess if Leaders fit their roles.")
-st.markdown("---")
-
-
-import streamlit as st
-from PIL import Image
-import base64
-
-st.header("LDNA")
-
-
-# --- Load Image ---
-dna_image = Image.open("LDNA - LDP (3).png")
-
-# Encode image to base64
-with open("LDNA - LDP (3).png", "rb") as image_file:
-    encoded_image = base64.b64encode(image_file.read()).decode()
-
-# Custom styled container with arrows and labels
-st.markdown(f"""
-    <style>
-    .custom-container {{
-        background-color: #fffff;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-    }}
-
-    .dna-image {{
-        width: 100%;
-        max-width: 900px;
-    }}
-
-    .label-row {{
-        display: flex;
-        justify-content: space-around;
-        margin-top: 10px;
-        color: #1d2742;
-        font-weight: 300;
-        flex-wrap: wrap;
-        margin-left: 50px;
-        margin-right: 50px;
-    }}
-
-    .label {{
-        flex: 1;
-        text-align: center;
-        font-size: 12px;
-        min-width: 100px;
-        padding: 5px;}}
-    </style>
-
-    <div class="custom-container">
-        <img src="data:image/png;base64,{encoded_image}" class="dna-image" />
-        <div class="label-row">
-            <div class="label">↓<br>Leadership Index Score (LIS)</div>
-            <div class="label">↓<br>Soft Skills Proficiency</div>
-            <div class="label">↓<br>Leadership Style Profile</div>
-            <div class="label">↓<br>Training Load Index</div>
-            <div class="label">↓<br>Engagement Index</div>
-            <div class="label">↓<br>Emotional Intelligence (EQ)</div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-
 st.markdown("---")
 
 st.subheader("Fit Composition", help='This chart shows which leaders fit their roles, which are overqualified, and which are underqualified.')
@@ -405,8 +265,8 @@ type_pie, type_summary = plot_typology_distribution(df_filtered)
 
 col1_row, col2_row = st.columns(2)
 with st.container():
-    st.plotly_chart(donut_fig, use_container_width=True)
     display_insight("donut", build_donut_chart, donut_summary, llm, "Insights for Donut Chart")
+    st.plotly_chart(donut_fig, use_container_width=True)
 
 st.markdown("---")
 st.subheader("Key Metrics")
@@ -415,8 +275,8 @@ st.subheader("Leadership Index Score (LIS)", help="This chart shows the distribu
 with st.container():
     selected_leaders = st.multiselect("Highlight specific leaders", df['Leader'].unique(), help="Select one or more leaders to highlight them on the chart.")
     hist_fig, hist_summary = build_histogram_with_leaders(df_filtered, highlight_leaders=selected_leaders)
-    st.plotly_chart(hist_fig, use_container_width=True)
     display_insight("hist", build_histogram_with_leaders, hist_summary, llm, "Insights for Histogram")
+    st.plotly_chart(hist_fig, use_container_width=True)
 
 st.markdown("---")
 st.subheader("Emotional Intelligence (EQ)", help="This chart shows the distribution of Leaders by their EQ scores.")
@@ -424,21 +284,22 @@ st.subheader("Emotional Intelligence (EQ)", help="This chart shows the distribut
 with st.container():
     selected_leaders_eq = st.multiselect("Highlight specific leaders", df['Leader'].unique(), key="eq_leader_selector", help="Select one or more leaders to highlight them on the chart.")
     hist_fig_eq, hist_summary_eq = build_histogram_with_leaders_eq(df_filtered, highlight_leaders=selected_leaders_eq)
-    st.plotly_chart(hist_fig_eq, use_container_width=True)
     display_insight("hist_eq", build_histogram_with_leaders_eq, hist_summary_eq, llm, "Insights for EQ Histogram")
+    st.plotly_chart(hist_fig_eq, use_container_width=True)
 
 st.markdown("---")
 st.subheader("Personality types", help="This chart shows the distribution of Leaders by their personality types.")
 with st.container():
-    st.plotly_chart(type_pie, use_container_width=True)
     display_insight("pie", plot_typology_distribution, type_summary, llm, "Insights for Pie Chart")
+    st.plotly_chart(type_pie, use_container_width=True)
 
 with st.container():
     st.subheader("Polar Chart by Typology", help="This chart shows the distribution of EQ or LIS scores for each dashboard.")
     selected_metric = st.selectbox("Choose a metric", ["LIS", "EQ"], help="Select the metric to visualize in the polar chart.")
-    fig, stats = build_polar_chart(df_filtered, metric=selected_metric)
+    selected_leaders_type = st.multiselect("Highlight specific leaders", df['Leader'].unique(), key="type_leaders", help="Select one or more leaders to highlight them on the chart.")
+    fig, stats = build_typology_bar_chart(df_filtered, metric=selected_metric, highlight_leaders=selected_leaders_type)
+    display_insight("polar_chart_dropdown", build_typology_bar_chart, stats, llm, f"Insights for {selected_metric} by Typology")
     st.plotly_chart(fig, use_container_width=True)
-    display_insight("polar_chart_dropdown", build_polar_chart, stats, llm, f"Insights for {selected_metric} by Typology")
 
 st.markdown("---")
 st.header("What are the Skills Gap?")
@@ -452,8 +313,9 @@ with st.container():
     if unique_skills:
         selected_skill = st.selectbox("Select Skill", unique_skills, key="skill_selector", help="Select a skill to visualize top performers.")
         top_fig, top_performers_df = plot_top_performers_by_skill(filtered_melted, skill=selected_skill)
-        st.plotly_chart(top_fig, use_container_width=True)
+        #st.plotly_chart(top_fig, use_container_width=True)
         display_insight("top_performers_by_skill", plot_top_performers_by_skill, top_performers_df, llm, "Insights for top performers by skill")
+        st.plotly_chart(top_fig, use_container_width=True)
 
 st.markdown("---")
 st.subheader("Strongest and Weakest Skills", help="This chart shows the strongest and weakest skills for each leader.")
@@ -461,24 +323,31 @@ fig_strong, fig_weak, top_skills_df, low_skills_df = plot_strongest_and_weakest_
 
 col1, col2 = st.columns(2)
 with col1:
-    st.plotly_chart(fig_strong, use_container_width=True)
     display_insight("strongest_skills", plot_strongest_and_weakest_skills, top_skills_df, llm, "Insights for top skills")
+    st.plotly_chart(fig_strong, use_container_width=True)
 
 with col2:
-    st.plotly_chart(fig_weak, use_container_width=True)
     display_insight("weakest", plot_strongest_and_weakest_skills, low_skills_df, llm, "Insights for weakest skills")
+    st.plotly_chart(fig_weak, use_container_width=True)
 
 st.markdown("---")
 st.subheader("Radar Chart", help="This chart shows the performance of leaders accross their skills, compared to the average of their group.")
 unique_dashboards = sorted(df_filtered["# Dashboard"].unique())
 
 if unique_dashboards:
-    selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards, help="Select a dashboard group to visualize the radar chart.")
+    selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards, help="Select a dashboard group to visualize the radar chart." )
     dashboard_leaders = sorted(df_filtered[df_filtered["# Dashboard"] == selected_dashboard]["Leader"].unique())
     selected_leader = st.selectbox("Select Leader", dashboard_leaders, help="Select a leader to visualize their performance.")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Average Key Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
+    with col2:
+        st.metric("Average Useful Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
+    with col3:
+        st.metric("Average Supplemental Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
     fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, df_filtered, skills_mapping)
-    st.plotly_chart(fig_radar, use_container_width=True)
     display_insight("radar", radar_chart_plotly, radar_stats, llm, "Insights for Radar Chart")
+    st.plotly_chart(fig_radar, use_container_width=True)
 else:
     st.write("No data available for the selected filters.")
 
@@ -490,8 +359,8 @@ st.markdown("---")
 st.subheader("Training Clusters", help="This chart shows the distribution of training clusters by skill.")
 with st.container():
     fig_training, summary_stat_training = plot_training_buckets_per_skill(filtered_training)
-    st.plotly_chart(fig_training, use_container_width=True)
     display_insight("training_clusters", plot_training_buckets_per_skill, summary_stat_training, llm, "Insights for training clusters")
+    st.plotly_chart(fig_training, use_container_width=True)
 
 st.markdown("---")
 
@@ -502,8 +371,8 @@ st.metric("Distinct Skills Targeted", personal_data["Skill"].nunique())
 st.metric("Skills Below Threshold", personal_data.loc[personal_data["Below Threshold"] == True, "Skill"].nunique())
 
 fig_clusters, resource_summary = plot_recommended_resources_by_skill(personal_data, selected_leader)
-st.plotly_chart(fig_clusters, use_container_width=True)
 display_insight("recommended_resources", plot_recommended_resources_by_skill, resource_summary, llm, "Insights for recommended resources")
+st.plotly_chart(fig_clusters, use_container_width=True)
 
 st.markdown("---")
 st.subheader("Recommended Resources by Category")
@@ -513,8 +382,7 @@ with st.container():
     if unique_resources:
         selected_resource = st.selectbox("Select Resource", unique_resources)
         top_res_fix, top_res = plot_top_resources_by_category(filtered_resources, selected_resource)
-        st.plotly_chart(top_res_fix, use_container_width=True)
         display_insight("top_res", plot_top_resources_by_category, top_res, llm, "Insights for top Chart")
+        st.plotly_chart(top_res_fix, use_container_width=True)
 
-st.markdown("---")
-st.subheader("Conclusion?")
+

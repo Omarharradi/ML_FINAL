@@ -381,7 +381,7 @@ from langchain.agents import Tool, AgentType, initialize_agent
 
 
 
-def initialize_pipeline(docx_path="LDP Final Report Methodology.docx"):
+def initialize_pipeline(docx_path="N&P LDP Final Report Strategy & Enablement Plan.docx"):
     """
     Initializes the pipeline by:
       - Loading Word doc and converting it into Langchain Documents.
@@ -1128,9 +1128,9 @@ def build_histogram_with_leaders(df, highlight_leaders=None):
     ))
 
     # Vertical lines
-    for val, label, color in zip([mean_lis, std_low, std_high],
-                                 ['Mean', '-1.5 Std', '+1.5 Std'],
-                                 ['green', 'red', 'red']):
+    for val, label, color in zip([70, 85],
+                                 ['Below 70', '85+'],
+                                 ['red', 'green']):
         fig.add_vline(
             x=val,
             line=dict(color=color, dash='dot'),
@@ -1349,3 +1349,143 @@ def plot_recommended_resources_by_skill(personal_data, selected_leader):
     )
 
     return fig, resource_count
+
+
+
+
+def plot_eq_leader_skills(beginner=4, intermediate=48, advanced=30):
+    """
+    Plots a bar chart showing the number of leaders by EQ skill levels:
+      - Beginner: Scored 0-59% On Skill
+      - Intermediate: Scored 60-74% On Skill
+      - Advanced: Scored 75-84% On Skill
+
+    Parameters:
+        beginner (int): Number of leaders at the beginner level.
+        intermediate (int): Number of leaders at the intermediate level.
+        advanced (int): Number of leaders at the advanced level.
+    """
+    # Define the categories and counts
+    categories = [
+        "Beginner (Scored 0-59%)",
+        "Intermediate (Scored 60-74%)",
+        "Advanced (Scored 75-84%)"
+    ]
+    counts = [beginner, intermediate, advanced]
+
+    # Create the bar plot using Plotly
+    fig = go.Figure(
+        data=go.Bar(
+            x=categories,
+            y=counts,
+            marker_color='indigo',  # Customize color as needed
+            text=counts,  # Display the count on top of each bar
+            textposition='outside'  # Automatically positions the text above the bars
+        )
+    )
+
+    # Update layout for better readability
+    fig.update_layout(
+        title="EQ Leader Skill Levels",
+        xaxis_title="Skill Level",
+        yaxis_title="Number of Leaders",
+        template="plotly_white"
+    )
+
+    # Display the figure
+    return fig
+
+
+
+def build_typology_bar_chart(df, metric="LIS", highlight_leaders=None):
+    """
+    Builds a bar chart for the given metric ('LIS' or 'EQ') by Typology.
+
+    Args:
+        df (pd.DataFrame): Data with 'Typology 1', 'LIS', and 'EQ' columns
+        metric (str): Either "LIS" or "EQ"
+        highlight_typologies (list, optional): Typologies to highlight
+
+    Returns:
+        fig (plotly.graph_objs._figure.Figure): Bar chart
+        avg_stats (list of dict): Summary per typology
+    """
+    assert metric in ["LIS", "EQ"], "Metric must be 'LIS' or 'EQ'"
+
+    # Compute average metric per typology
+    avg = df.groupby("Typology 1")[metric].mean().reset_index()
+    avg_stats = avg.to_dict(orient="records")
+
+    # Default color for bars
+    bar_colors = ['darkblue'] * len(avg)
+
+    if highlight_leaders:
+        # Normalize to lowercase for comparison
+        highlight_leaders = set(l.lower() for l in highlight_leaders)
+
+        # Find which typologies have selected leaders
+        typologies_with_highlights = df[df['Leader'].str.lower().isin(highlight_leaders)]["Typology 1"].unique()
+
+        # Highlight those bars
+        for i, typ in enumerate(avg["Typology 1"]):
+            if typ in typologies_with_highlights:
+                bar_colors[i] = 'crimson'
+
+    # Create the bar plot
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        x=avg["Typology 1"],
+        y=avg[metric],
+        marker_color=bar_colors,
+        name=f"Average {metric}",
+        hovertemplate="<b>%{x}</b><br>Avg " + metric + ": %{y:.2f}<extra></extra>"
+    ))
+
+    fig.update_layout(
+        title=f"Average {metric} by Typology",
+        xaxis_title="Typology",
+        yaxis_title=f"{metric} Score",
+        template="plotly_white",
+        margin=dict(t=60, b=60, l=60, r=40),
+        height=500
+    )
+
+    return fig, avg_stats
+
+
+import plotly.graph_objects as go
+import pandas as pd
+
+def plot_lis_by_typology(df):
+    """
+    Plots a bar chart showing average LIS score by Typology.
+
+    Args:
+        df (pd.DataFrame): Must contain 'Typology 1' and 'LIS' columns.
+
+    Returns:
+        fig (plotly.graph_objs.Figure): The bar chart figure.
+    """
+    # Group by Typology and calculate average LIS
+    avg_lis = df.groupby("Typology 1")["LIS"].mean().reset_index()
+
+    # Build bar chart
+    fig = go.Figure(go.Bar(
+        x=avg_lis["Typology 1"],
+        y=avg_lis["LIS"],
+        marker_color='steelblue',
+        hovertemplate="<b>%{x}</b><br>Avg LIS: %{y:.2f}<extra></extra>"
+    ))
+
+    # Layout customization
+    fig.update_layout(
+        title="Average LIS Score by Typology",
+        xaxis_title="Typology",
+        yaxis_title="Average LIS Score",
+        template="plotly_white",
+        margin=dict(t=60, b=60, l=60, r=40),
+        height=500
+    )
+
+    return fig
