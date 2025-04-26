@@ -50,9 +50,8 @@ load_dotenv()
 st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
 
 # Set API keys from Streamlit secrets
-#os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 #os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-os.environ["GOOGLE_API_KEY"] = 'AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
 
 #GOOGLE_API_KEY='AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
 GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
@@ -495,8 +494,6 @@ st.markdown("---")
 
 
 # 31
-import streamlit as st
-import matplotlib.pyplot as plt
 
 # Section Header & Descriptions
 st.subheader("Q1. Are Leaders in the Right Roles?")
