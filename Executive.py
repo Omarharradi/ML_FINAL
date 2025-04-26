@@ -45,6 +45,10 @@ try:
 except ImportError:
     pass
 
+# Load environment variables
+load_dotenv()
+st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
+
 hide_streamlit_style = """
 <style>
 /* Hide hamburger menu */
@@ -58,9 +62,7 @@ footer {visibility: hidden;}
 # Inject CSS with HTML allowed
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Load environment variables
-load_dotenv()
-st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
+
 
 # Set API keys from Streamlit secrets
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
