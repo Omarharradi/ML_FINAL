@@ -46,18 +46,7 @@ try:
 except ImportError:
     pass
 
-hide_streamlit_style = """
-<style>
-/* Hide hamburger menu */
-#MainMenu {visibility: hidden;}
 
-/* Hide footer */
-footer {visibility: hidden;}
-</style>
-"""
-
-# Inject CSS with HTML allowed
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # Load environment variables
 load_dotenv()
