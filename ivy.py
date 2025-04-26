@@ -494,8 +494,6 @@ st.markdown("---")
 
 
 # 31
-import streamlit as st
-import matplotlib.pyplot as plt
 
 # Section Header & Descriptions
 st.subheader("Q1. Are Leaders in the Right Roles?")
