@@ -198,7 +198,7 @@ def handle_message():
 
 # --- Chat Interface ---
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Chat Assistant")
+st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights.")
 # Clear chat history
 if st.sidebar.button("🗑️ Clear History"):
     st.session_state.chat_history = []
@@ -252,14 +252,26 @@ for msg in st.session_state.chat_history[-5:]:
 
 st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
+st.title("Overview")
 
+st.markdown(
+    """
+This section of the **Leadership Competency Viewer** platform presents the core data used to answer the three strategic questions driving the LDP analysis:
+
+1. **Are our leaders in the right roles?**  
+2. **What are the skill gaps?**  
+3. **How can we bridge those gaps effectively?**
+
+Using live data from the *Discovery-Tools* and personalized dashboards, this page provides visualized insights into leader fit, competency levels, and development needs—enabling evidence-based decisions at both individual and organizational levels.
+"""
+)
 
 st.markdown("---")
-st.header("Do all Leaders fit")
-st.caption("ℹ️ This section shows key metrics to assess if Leaders fit their roles.")
+st.header("Are our leaders in the right roles?")
+st.caption("ℹ️ This section shows key metrics to assess if Leaders are in the right roles.")
 st.markdown("---")
 
-st.subheader("Fit Composition", help='This chart shows which leaders fit their roles, which are overqualified, and which are underqualified.')
+st.subheader("Leadership Role Fit Overview", help='This chart shows which leaders demonstrate role proficiency, which are surpassing role proficiency, and which require training.')
 donut_fig, donut_summary = build_donut_chart(df_filtered['LIS'])
 type_pie, type_summary = plot_typology_distribution(df_filtered)
 
@@ -288,7 +300,7 @@ with st.container():
     st.plotly_chart(hist_fig_eq, use_container_width=True)
 
 st.markdown("---")
-st.subheader("Personality types", help="This chart shows the distribution of Leaders by their personality types.")
+st.subheader("Leadership Typology", help="This chart shows the distribution of Leaders by their leadership typology.")
 with st.container():
     display_insight("pie", plot_typology_distribution, type_summary, llm, "Insights for Pie Chart")
     st.plotly_chart(type_pie, use_container_width=True)
@@ -302,8 +314,8 @@ with st.container():
     st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("---")
-st.header("What are the Skills Gap?")
-st.caption("ℹ️ This section analyzes the skills gap in the organization.")
+st.header("What are the Skills Gaps?")
+st.caption("ℹ️ This section analyzes the skill gaps in the organization")
 st.markdown("---")
 
 st.subheader("Top Performers by Skill", help="This chart shows the top performers for each skill.")
@@ -318,7 +330,7 @@ with st.container():
         st.plotly_chart(top_fig, use_container_width=True)
 
 st.markdown("---")
-st.subheader("Strongest and Weakest Skills", help="This chart shows the strongest and weakest skills for each leader.")
+st.subheader("Strongest and Weakest Skills", help="This chart shows the strongest and weakest skills across leaders.")
 fig_strong, fig_weak, top_skills_df, low_skills_df = plot_strongest_and_weakest_skills(filtered_melted)
 
 col1, col2 = st.columns(2)
@@ -342,9 +354,9 @@ if unique_dashboards:
     with col1:
         st.metric("Average Key Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
     with col2:
-        st.metric("Average Useful Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
+        st.metric("Average Useful Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Necessary Skills"].values[0])
     with col3:
-        st.metric("Average Supplemental Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
+        st.metric("Average Supplemental Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Beneficial Skills"].values[0])
     fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, df_filtered, skills_mapping)
     display_insight("radar", radar_chart_plotly, radar_stats, llm, "Insights for Radar Chart")
     st.plotly_chart(fig_radar, use_container_width=True)
@@ -352,7 +364,7 @@ else:
     st.write("No data available for the selected filters.")
 
 st.markdown("---")
-st.header("How to Bridge the skill gap")
+st.header("How can we bridge those gaps effectively?")
 st.caption("ℹ️ This section shows the training clusters and recommended resources to bridge the skill gap.")
 st.markdown("---")
 

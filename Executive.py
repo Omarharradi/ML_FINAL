@@ -212,7 +212,8 @@ def handle_message():
 
 # --- Chat Interface ---
 #st.sidebar.markdown("---")
-st.sidebar.markdown("### Chat Assistant")
+st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights.")
+
 # Clear chat history
 if st.sidebar.button("🗑️ Clear History"):
     st.session_state.chat_history = []
@@ -340,9 +341,9 @@ import streamlit as st
 from PIL import Image
 import base64
 
-st.header("LDNA")
+st.header("Nesma & Partners LDNA ")
 
-
+st.markdown("**Measured & Included in Current Scope**")
 # --- Load Image ---
 dna_image = Image.open("LDNA - LDP (3).png")
 
@@ -415,6 +416,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+st.markdown("**Expanded & Excluded from Current Scope**")
 
 
 
@@ -432,7 +434,7 @@ with col1:
     st.caption("Based on their Key, Useful, and Supplemental Skills.")
 
 with col2:
-    st.metric(label="Avg Leadership Index", value="78%")
+    st.metric(label="Avg Leadership Index (LIS)", value="78%")
     st.caption("Combines emotional intelligence and all job-relevant skills.")
 
 # Second Row
@@ -444,17 +446,17 @@ with col3:
 
 with col4:
     st.metric(label='"Mentoring" Leaders', value="35%")
-    st.caption('This typology showed the highest leadership index in our study.')
+    st.caption('This typology showed the highest leadership index (LIS) in our study.')
 st.markdown("---")
 
 
 # 28
-st.subheader("Results: Leadership Index & EQ")
+st.subheader("Results: Leadership Index (LIS) & EQ")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric(label="Avg Leadership Index Score", value="78%")
+    st.metric(label="Avg Leadership Index Score (LIS)", value="78%")
     st.caption("Cohort LIS above baseline of 70; majority are role-aligned.")
 
 with col2:
@@ -533,7 +535,7 @@ with col2:
     st.dataframe(above85)  # Replace 'above85' with the appropriate DataFrame variable if different
 
 
-st.markdown("### How Is the Leadership Index Score Calculated?")
+st.markdown("### How Is the Leadership Index Score (LIS) Calculated?")
 st.code("LIS = (EQ × 0.40) + (KS × 0.30) + (US × 0.21) + (SS × 0.09)", language="python")
 
 st.markdown("---")
@@ -557,7 +559,7 @@ with col6:
     st.caption("Contextual skills — unexpectedly strong performance indicators.")
 
 
-st.subheader("Mentoring Typologies Drive the Highest Leadership Index Score")
+st.subheader("Mentoring Typologies Drive the Highest Leadership Index Score (LIS")
 
 fig2=plot_lis_by_typology(df)
 

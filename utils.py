@@ -234,7 +234,7 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
                 radialaxis=dict(visible=True, range=radial_range, tickvals=tickvals, showline=True),
                 angularaxis=dict(
     rotation=50,
-    tickfont=dict(size=8),
+    tickfont=dict(size=10),
     direction="clockwise"
 )
             ),
@@ -691,7 +691,7 @@ def dynamic_sidebar_filters(df):
 
         # 5. Individual filter based on dashboards + positions
         type_options = sorted(df_type_filtered["Typology 1"].dropna().unique()) if "Typology 1" in df.columns else []
-        selected_type = st.multiselect("Select Type(s)", type_options, help="Select one or more types to filter the data.", key="Select Type(s)")
+        selected_type = st.multiselect("Select Leadership Type(s)", type_options, help="Select one or more typology to filter the data.", key="Select Type(s)")
 
         # Checkbox to toggle "All Leaders selected" state
         all_selected = not any([selected_dashboards, selected_positions, selected_individuals, selected_type])
@@ -1181,15 +1181,15 @@ def plot_typology_distribution(df):
 
         # Custom colors (excluding red)
         custom_colors = [
-            '#636EFA',  # blue
-            '#00CC96',  # green
-            '#AB63FA',  # purple
-            '#FFA15A',  # orange (soft, not red)
-            '#19D3F3',  # light blue
-            '#B6E880',  # lime green
-            '#FFB6C1',  # pinkish (but not true red)
-            '#FECB52'   # yellow
-        ]
+    "#1F77B4",  # deep blue
+    "#2CA02C",  # vivid green
+    "#9467BD",  # royal purple
+    "#FF7F0E",  # bold orange
+    "#17BECF",  # bright cyan
+    "#3CB371",  # medium sea-green
+    "#7F7F7F",  # charcoal gray
+    "#BCBD22"   # olive-gold
+]
 
         typologies = typology_counts['Typology'].unique()
         color_map = {typ: custom_colors[i % len(custom_colors)] for i, typ in enumerate(typologies)}
