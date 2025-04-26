@@ -34,16 +34,16 @@ def build_donut_chart(lis_data):
     '''
     mean_lis = np.mean(lis_data)
     std_lis = np.std(lis_data)
-    std_low = mean_lis - 1.5 * std_lis
-    std_high = mean_lis + 1.5 * std_lis
+    std_low = 70
+    std_high = 84
 
     leaders_meeting = np.sum((lis_data >= std_low) & (lis_data <= std_high))
     leaders_exceeding = np.sum(lis_data > std_high)
     leaders_requiring_training = np.sum(lis_data < std_low)
     
     leaders_summary = {
-    "meeting_standard": np.sum((lis_data >= std_low) & (lis_data <= std_high)),
-    "exceeding_standard": np.sum(lis_data > std_high),
+    "meeting_standard": np.sum((lis_data >= std_low) & (lis_data < std_high)),
+    "exceeding_standard": np.sum(lis_data >= std_high),
     "requiring_training": np.sum(lis_data < std_low)
     }
 
@@ -1001,11 +1001,14 @@ def build_histogram_with_leaders_eq(df, highlight_leaders=None):
                       '<b>Leaders:</b> %{customdata}<extra></extra>'
     ))
 
+    EPS = 1e-9                       # small positive number
+    std_safe = std_lis if std_lis > 0 else EPS
+
     # Bell curve
     x_vals = np.linspace(min(lis_data), max(lis_data), 500)
     y_vals = (
-        (1 / (std_lis * np.sqrt(2 * np.pi))) *
-        np.exp(-0.5 * ((x_vals - mean_lis) / std_lis) ** 2)
+        (1 / (std_safe * np.sqrt(2 * np.pi))) *
+        np.exp(-0.5 * ((x_vals - mean_lis) / std_safe) ** 2)
     )
     y_scaled = y_vals * max(grouped['Count']) / max(y_vals)
 
@@ -1110,12 +1113,14 @@ def build_histogram_with_leaders(df, highlight_leaders=None):
                       '<b>Count:</b> %{y}<br>' +
                       '<b>Leaders:</b> %{customdata}<extra></extra>'
     ))
+    EPS = 1e-9                       # small positive number
+    std_safe = std_lis if std_lis > 0 else EPS
 
     # Bell curve
     x_vals = np.linspace(min(lis_data), max(lis_data), 500)
     y_vals = (
-        (1 / (std_lis * np.sqrt(2 * np.pi))) *
-        np.exp(-0.5 * ((x_vals - mean_lis) / std_lis) ** 2)
+        (1 / (std_safe * np.sqrt(2 * np.pi))) *
+        np.exp(-0.5 * ((x_vals - mean_lis) / std_safe) ** 2)
     )
     y_scaled = y_vals * max(grouped['Count']) / max(y_vals)
 
@@ -1266,9 +1271,13 @@ def plot_strongest_and_weakest_skills(filtered_df, top_n=7):
         text_auto=True
     )
     fig_weak.update_layout(width=800, height=530)
+    summary_stats = {
+    "strongest": strongest_df,   # top-N highest averages
+    "weakest":   weakest_df      # top-N lowest averages
+}
 
 
-    return fig_strong, fig_weak, strongest_df, weakest_df
+    return fig_strong, fig_weak, summary_stats
 
 
 

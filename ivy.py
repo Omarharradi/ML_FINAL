@@ -50,9 +50,8 @@ load_dotenv()
 st.set_page_config(page_title="Leadership Competency Viewer", layout="wide")
 
 # Set API keys from Streamlit secrets
-#os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 #os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
-os.environ["GOOGLE_API_KEY"] = 'AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
 
 #GOOGLE_API_KEY='AIzaSyAV5qNzuQnQ3lnndlWXmcPbQwBnLSTG5Vg'
 GOOGLE_APPLICATION_CREDENTIALS='development/my-service-account-key.json'
@@ -65,7 +64,7 @@ df['EQ']=df['Overall Results']
 df['Link'] = "https://ivy-dashboard-4833f144eaf4.herokuapp.com/page-2?user_id=" + df['ID'].astype(str)
 df['Dashboard Link'] = df['Link'].apply(lambda x: f"[Open Dashboard]({x})")
 below70=pd.read_csv('below_70.csv')
-above85=pd.read_csv('above_85.csv')
+above85=pd.read_csv('above_84.csv')
 between_70_84=pd.read_csv('between_70_84.csv')
 
 resource=pd.read_csv('resources_summary.csv')
@@ -191,6 +190,9 @@ with st.sidebar:
                 </div>
             </div>
         """, unsafe_allow_html=True)
+        st.markdown("---")
+
+        
 
 # --- Setup Chat Memory ---
 if "chat_history" not in st.session_state:
@@ -212,7 +214,7 @@ def handle_message():
 
 # --- Chat Interface ---
 #st.sidebar.markdown("---")
-st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights.")
+st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights. You can ask about specific metrics, trends, or any other data-related queries (e.g., 'What is the average EQ score? Who has the highest LIS?'). You can also ask about anything related to the report, such as 'What is LDNA?'.")
 
 # Clear chat history
 if st.sidebar.button("🗑️ Clear History"):
@@ -258,7 +260,7 @@ st.sidebar.markdown("""
 #st.sidebar.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
 # Show last 5 messages only
-for msg in st.session_state.chat_history[-5:]:
+for msg in st.session_state.chat_history[-6:]:
     role_class = "user-message" if msg["role"] == "user" else "assistant-message"
     st.sidebar.markdown(
         f'<div class="chat-message {role_class}">{msg["content"]}</div>',
@@ -492,6 +494,8 @@ st.markdown("---")
 
 
 # 31
+import streamlit as st
+import matplotlib.pyplot as plt
 
 # Section Header & Descriptions
 st.subheader("Q1. Are Leaders in the Right Roles?")
@@ -509,7 +513,7 @@ with col2:
     st.subheader("70-84")
     st.dataframe(between_70_84)
 with col3:
-    st.subheader("85+")
+    st.subheader("84+")
     st.dataframe(above85)
 st.markdown("---")
 
@@ -525,12 +529,12 @@ col1, col2 = st.columns(2)
 with col1:
     st.metric(label="Leaders Scoring Well Above Avg", value="7")
     st.caption("Over 88.42 LIS")
-    st.dataframe(above85)  # Replace 'above85' with your actual DataFrame variable
+    st.dataframe(df.loc[df['LIS'] > 88.41, ['Leader', 'LIS', 'Position']])  # Replace 'above85' with your actual DataFrame variable
 
 with col2:
     st.metric(label="Growth Needed Leaders", value="8")
     st.caption("Under 67.33 LIS")
-    st.dataframe(above85)  # Replace 'above85' with the appropriate DataFrame variable if different
+    st.dataframe(df.loc[df['LIS'] < 67.33, ['Leader', 'LIS', 'Position']])  # Replace 'above85' with the appropriate DataFrame variable if different
 
 
 st.markdown("### How Is the Leadership Index Score (LIS) Calculated?")

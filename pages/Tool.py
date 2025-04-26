@@ -198,7 +198,7 @@ def handle_message():
 
 # --- Chat Interface ---
 st.sidebar.markdown("---")
-st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights.")
+st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights. You can ask about specific metrics, trends, or any other data-related queries (e.g., 'What is the average EQ score? Who has the highest LIS?'). You can also ask about anything related to the report, such as 'What is LDNA?'.")
 # Clear chat history
 if st.sidebar.button("🗑️ Clear History"):
     st.session_state.chat_history = []
@@ -285,7 +285,7 @@ st.subheader("Key Metrics")
 st.subheader("Leadership Index Score (LIS)", help="This chart shows the distribution of Leaders by their LIS scores.")
 
 with st.container():
-    selected_leaders = st.multiselect("Highlight specific leaders", df['Leader'].unique(), help="Select one or more leaders to highlight them on the chart.")
+    selected_leaders = st.multiselect("Highlight specific leaders", df_filtered['Leader'].unique(), help="Select one or more leaders to highlight them on the chart.")
     hist_fig, hist_summary = build_histogram_with_leaders(df_filtered, highlight_leaders=selected_leaders)
     display_insight("hist", build_histogram_with_leaders, hist_summary, llm, "Insights for Histogram")
     st.plotly_chart(hist_fig, use_container_width=True)
@@ -294,7 +294,7 @@ st.markdown("---")
 st.subheader("Emotional Intelligence (EQ)", help="This chart shows the distribution of Leaders by their EQ scores.")
 
 with st.container():
-    selected_leaders_eq = st.multiselect("Highlight specific leaders", df['Leader'].unique(), key="eq_leader_selector", help="Select one or more leaders to highlight them on the chart.")
+    selected_leaders_eq = st.multiselect("Highlight specific leaders", df_filtered['Leader'].unique(), key="eq_leader_selector", help="Select one or more leaders to highlight them on the chart.")
     hist_fig_eq, hist_summary_eq = build_histogram_with_leaders_eq(df_filtered, highlight_leaders=selected_leaders_eq)
     display_insight("hist_eq", build_histogram_with_leaders_eq, hist_summary_eq, llm, "Insights for EQ Histogram")
     st.plotly_chart(hist_fig_eq, use_container_width=True)
@@ -331,15 +331,15 @@ with st.container():
 
 st.markdown("---")
 st.subheader("Strongest and Weakest Skills", help="This chart shows the strongest and weakest skills across leaders.")
-fig_strong, fig_weak, top_skills_df, low_skills_df = plot_strongest_and_weakest_skills(filtered_melted)
+fig_strong, fig_weak, top_skills_df = plot_strongest_and_weakest_skills(filtered_melted)
 
 col1, col2 = st.columns(2)
 with col1:
-    display_insight("strongest_skills", plot_strongest_and_weakest_skills, top_skills_df, llm, "Insights for top skills")
     st.plotly_chart(fig_strong, use_container_width=True)
-
+    display_insight("strongest_skills", plot_strongest_and_weakest_skills, top_skills_df, llm, "Insights for top and weakest skills")
+    
 with col2:
-    display_insight("weakest", plot_strongest_and_weakest_skills, low_skills_df, llm, "Insights for weakest skills")
+   # display_insight("weakest", plot_strongest_and_weakest_skills, low_skills_df, llm, "Insights for weakest skills")
     st.plotly_chart(fig_weak, use_container_width=True)
 
 st.markdown("---")
