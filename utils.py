@@ -466,7 +466,7 @@ Context:
 Question:
 {question}
 
-Answer by combining insights across individuals. Focus on patterns, averages, and summaries. If no useful context is found, say "Not enough information. Never mention the context."
+Answer by combining insights across individuals. Focus on patterns, averages, and summaries. If no useful context is found, say "Not enough information". Never mention the context."
 """)
 
     # Using StuffDocumentsChain to combine documents into context
