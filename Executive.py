@@ -345,8 +345,10 @@ html += """
 
 ## ppt insights
 
-st.title("LEADERSHIP DEVELOPMENTPROGRAM (LDP) PILOT")
-st.markdown("This tool displays interactive visualizations based on overall leadership competency levels.")
+st.title("LEADERSHIP DEVELOPMENT PROGRAM (LDP) PILOT")
+st.caption("AI-Powered Leadership Competency Viewer")
+
+st.markdown("The AI-powered Leadership Competency Viewer is an interactive analytics tool that helps HR and leadership teams explore real-time insights, track development progress, and make data-driven talent decisions based on overall leadership competency levels.")
 
 st.header("Access to All Leaders")
 components.html(html, height=350, scrolling=True)
@@ -440,7 +442,7 @@ st.markdown("**Expanded & Excluded from Current Scope**")
 #6
 st.markdown("---")
 
-st.subheader("📊 Executive Summary: Understanding the leadershiplandscape of N&P")
+st.subheader("📊 Executive Summary: Understanding the leadership landscape of N&P")
 
 
 # First Row
