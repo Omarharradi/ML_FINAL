@@ -42,13 +42,13 @@ def build_donut_chart(lis_data):
     leaders_requiring_training = np.sum(lis_data < std_low)
     
     leaders_summary = {
-    "meeting_standard": np.sum((lis_data >= std_low) & (lis_data < std_high)),
-    "exceeding_standard": np.sum(lis_data >= std_high),
-    "requiring_training": np.sum(lis_data < std_low)
+    "Strong Role Fit": np.sum((lis_data >= std_low) & (lis_data < std_high)),
+    "Very Strong Role Fit": np.sum(lis_data >= std_high),
+    "Preliminary Fit - Further Review": np.sum(lis_data < std_low)
     }
 
        # Original full data
-    full_labels = ['Demonstrating Role <br>Proficiency', 'Surpassing Role Proficiency', 'Requiring Training']
+    full_labels = ['Strong Role Fit', 'Very Strong Role Fit', 'Preliminary Fit - Further Review']
     full_values = [leaders_meeting, leaders_exceeding, leaders_requiring_training]
     full_colors = ['#5c9acc', '#f4a300', '#e63946']
 
@@ -208,7 +208,9 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
                 theta=skills_closed,
                 fill='toself',
                 mode='lines+markers',
-                name=f"Dashboard Avg",
+                name="Avg skill score of leaders from similar dashboard",
+                legendgroup="Avg",
+                showlegend=(i == 0),
                 marker=dict(color=category_colors["Average"])
             ),
             row=1, col=i+1
@@ -222,7 +224,9 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
                     theta=skills_closed,
                     fill='toself',
                     mode='lines+markers',
-                    name=f"{leader} (Leader)",
+                    name=f"{leader}'s Skill Score",
+                    legendgroup="Leader",
+                    showlegend=(i == 0),
                     marker=dict(color=category_colors["Leader"])
                 ),
                 row=1, col=i+1
@@ -242,7 +246,7 @@ def radar_chart_plotly(dashboard, leader, df, skills_mapping):
         )
 
     fig.update_layout(
-        title_text=f"Radar Chart: {leader} vs Dashboard Avg ({dashboard})" if leader != "None" else f"Radar Chart: {dashboard} (No Leader)",
+        title_text=f"Skillset Analysis: {leader} vs Dashboard Avg ({dashboard})" if leader != "None" else f"Radar Chart: {dashboard} (No Leader)",
         showlegend=True,
         width=350 * len(categories),
         height=400,
@@ -1172,43 +1176,63 @@ def build_histogram_with_leaders(df, highlight_leaders=None):
     return fig, summary_stats
 
 
+import plotly.express as px
 
-def plot_typology_distribution(df):
+def plot_typology_distribution(
+        df,
+        selected_leader=None,          # ← pass the leader picked in Streamlit
+        leader_col="Leader",           # column holding the leader names/IDs
+        typology_col="Typology 1"
+    ):
     """
-    Plot the distribution of 'Typology 1' as a pie chart without using red.
+    Draw a pie chart of `typology_col`.
+    If `selected_leader` is supplied, the slice corresponding to that leader’s
+    typology is highlighted (pulled out of the pie).
 
-    Parameters:
-    - df: pd.DataFrame, the input dataframe
+    Returns
+    -------
+    fig : plotly.graph_objs.Figure
+    typology_counts : pd.DataFrame
     """
+
+    # 1. Frequency table -------------------------------------------------------
     if 'Typology 1' in df.columns:
         typology_counts = df['Typology 1'].value_counts().reset_index()
         typology_counts.columns = ['Typology', 'Count']
 
-        # Custom colors (excluding red)
-        custom_colors = [
-    "#1F77B4",  # deep blue
-    "#2CA02C",  # vivid green
-    "#9467BD",  # royal purple
-    "#FF7F0E",  # bold orange
-    "#17BECF",  # bright cyan
-    "#3CB371",  # medium sea-green
-    "#7F7F7F",  # charcoal gray
-    "#BCBD22"   # olive-gold
-]
+    # 2. Colour palette (no red) ----------------------------------------------
+    custom_colors = [
+        "#1F77B4", "#2CA02C", "#9467BD", "#FF7F0E",
+        "#17BECF", "#3CB371", "#7F7F7F", "#BCBD22"
+    ]
+    color_map = {t: custom_colors[i % len(custom_colors)]
+                 for i, t in enumerate(typology_counts["Typology"])}
 
-        typologies = typology_counts['Typology'].unique()
-        color_map = {typ: custom_colors[i % len(custom_colors)] for i, typ in enumerate(typologies)}
+    # 3. Determine which slice to pull out ------------------------------------
+    highlight_typology = None
+    if selected_leader is not None and selected_leader in df[leader_col].values:
+        highlight_typology = df.loc[
+            df[leader_col] == selected_leader, typology_col
+        ].iloc[0]
 
-        fig_typ_dist = px.pie(
-            typology_counts,
-            names='Typology',
-            values='Count',
-            title='Leadership Typology Distribution',
-            color='Typology',
-            color_discrete_map=color_map
-        )
+    pull = [
+        0.15 if t == highlight_typology else 0      # 15 % radial offset
+        for t in typology_counts["Typology"]
+    ]
 
-        return fig_typ_dist, typology_counts
+    # 4. Build the pie ---------------------------------------------------------
+    fig = px.pie(
+        typology_counts,
+        names="Typology",
+        values="Count",
+        title="Leadership Typology Distribution",
+        color="Typology",
+        color_discrete_map=color_map,
+    )
+    fig.update_traces(pull=pull)
+
+    return fig, typology_counts
+
     
 
 
@@ -1236,6 +1260,7 @@ def plot_strongest_and_weakest_skills(filtered_df, top_n=7):
     strongest_df = (
         filtered_df.groupby("Skill")["Score"]
         .mean()
+        .round(1)  
         .sort_values(ascending=False)
         .head(top_n)
         .reset_index()
@@ -1245,7 +1270,7 @@ def plot_strongest_and_weakest_skills(filtered_df, top_n=7):
         strongest_df,
         x="Skill",
         y="Score",
-        title=f"Top {top_n} Strongest Skills by Average Score",
+        title=f"Top 10% Strongest Leadership Skills - Group Overview",
         labels={"Score": "Average Score"},
         text_auto=True
     )
@@ -1257,6 +1282,7 @@ def plot_strongest_and_weakest_skills(filtered_df, top_n=7):
     weakest_df = (
         filtered_df.groupby("Skill")["Score"]
         .mean()
+        .round(1)  
         .sort_values()
         .head(top_n)
         .reset_index()
@@ -1266,7 +1292,7 @@ def plot_strongest_and_weakest_skills(filtered_df, top_n=7):
         weakest_df,
         x="Skill",
         y="Score",
-        title=f"Top {top_n} Weakest Skills by Average Score",
+        title=f"Top 10% Weakest Leadership Skills - Group Overview",
         labels={"Score": "Average Score"},
         text_auto=True
     )
@@ -1362,48 +1388,89 @@ def plot_recommended_resources_by_skill(personal_data, selected_leader):
 
 
 
-def plot_eq_leader_skills(beginner=4, intermediate=48, advanced=30):
+def plot_eq_leader_skills(
+        df: pd.DataFrame,
+        *,
+        score_col: str = "LIS",
+        leader_col: str = "Leader",
+        selected_leader: str | None = None,
+        base_color: str = "indigo",
+        highlight_color: str = "#FF7F0E",   # vivid orange
+) -> go.Figure:
     """
-    Plots a bar chart showing the number of leaders by EQ skill levels:
-      - Beginner: Scored 0-59% On Skill
-      - Intermediate: Scored 60-74% On Skill
-      - Advanced: Scored 75-84% On Skill
+    Build a bar chart of EQ skill-level counts and optionally highlight the
+    bar that contains `selected_leader`.
 
-    Parameters:
-        beginner (int): Number of leaders at the beginner level.
-        intermediate (int): Number of leaders at the intermediate level.
-        advanced (int): Number of leaders at the advanced level.
+    Bins
+    ----
+    Beginner      :  0–59 %
+    Intermediate  : 60–74 %
+    Advanced      : 75–84 %
+    (Scores ≥ 85 % are ignored; add another bin if needed.)
+
+    Returns
+    -------
+    Plotly Figure
     """
-    # Define the categories and counts
+
+    if score_col not in df.columns:
+        raise KeyError(f"Column {score_col!r} not found in dataframe.")
+
+    # ── 1 · tally leaders per bracket ─────────────────────────────────────────
+    beginner     = df[df[score_col] < 60].shape[0]
+    intermediate = df[(df[score_col] >= 60) & (df[score_col] < 75)].shape[0]
+    advanced     = df[(df[score_col] >= 75) & (df[score_col] < 85)].shape[0]
+
     categories = [
-        "Beginner (Scored 0-59%)",
-        "Intermediate (Scored 60-74%)",
-        "Advanced (Scored 75-84%)"
+        "Beginner (0–59 %)",
+        "Intermediate (60–74 %)",
+        "Advanced (75–84 %)",
     ]
     counts = [beginner, intermediate, advanced]
 
-    # Create the bar plot using Plotly
+    # ── 2 · decide which bar (if any) to highlight ───────────────────────────
+    bar_colors = [base_color] * len(categories)
+
+    if selected_leader is not None:
+        if leader_col not in df.columns:
+            st.warning(f"Column {leader_col!r} not found – cannot highlight leader.")
+        elif selected_leader not in df[leader_col].values:
+            st.warning(f"Leader {selected_leader!r} not found – no bar highlighted.")
+        else:
+            lis_val = df.loc[df[leader_col] == selected_leader, score_col].iloc[0]
+            if lis_val < 60:
+                idx = 0
+            elif lis_val < 75:
+                idx = 1
+            elif lis_val < 85:
+                idx = 2
+            else:
+                idx = None   # falls outside our three-bar chart
+            if idx is not None:
+                bar_colors[idx] = highlight_color
+
+    # ── 3 · build chart ──────────────────────────────────────────────────────
     fig = go.Figure(
-        data=go.Bar(
+        go.Bar(
             x=categories,
             y=counts,
-            marker_color='indigo',  # Customize color as needed
-            text=counts,  # Display the count on top of each bar
-            textposition='outside'  # Automatically positions the text above the bars
+            marker=dict(color=bar_colors),
+            text=counts,
+            textposition="outside",
         )
     )
 
-    # Update layout for better readability
     fig.update_layout(
         title="EQ Leader Skill Levels",
         xaxis_title="Skill Level",
         yaxis_title="Number of Leaders",
-        template="plotly_white"
+        template="plotly_white",
+        margin=dict(t=60, b=60, l=60, r=40),
+        # preserve our left-to-right order
+        xaxis=dict(categoryorder="array", categoryarray=categories),
     )
 
-    # Display the figure
     return fig
-
 
 
 def build_typology_bar_chart(df, metric="LIS", highlight_leaders=None):
@@ -1463,38 +1530,81 @@ def build_typology_bar_chart(df, metric="LIS", highlight_leaders=None):
     return fig, avg_stats
 
 
-import plotly.graph_objects as go
-import pandas as pd
-
-def plot_lis_by_typology(df):
+def plot_lis_by_typology(df: pd.DataFrame):
     """
-    Plots a bar chart showing average LIS score by Typology.
-
-    Args:
-        df (pd.DataFrame): Must contain 'Typology 1' and 'LIS' columns.
-
-    Returns:
-        fig (plotly.graph_objs.Figure): The bar chart figure.
+    Return a bar chart of average LIS by Typology, sorted high → low.
     """
-    # Group by Typology and calculate average LIS
-    avg_lis = df.groupby("Typology 1")["LIS"].mean().reset_index()
+    # 1️⃣  average LIS per typology
+    avg_lis = (
+        df.groupby("Typology 1", as_index=False)["LIS"]
+          .mean()
+          .sort_values("LIS", ascending=False)        # ← sort here
+    )
 
-    # Build bar chart
-    fig = go.Figure(go.Bar(
-        x=avg_lis["Typology 1"],
-        y=avg_lis["LIS"],
-        marker_color='steelblue',
-        hovertemplate="<b>%{x}</b><br>Avg LIS: %{y:.2f}<extra></extra>"
-    ))
+    # 2️⃣  build the bar chart
+    fig = go.Figure(
+        go.Bar(
+            x=avg_lis["Typology 1"],
+            y=avg_lis["LIS"],
+            marker_color="steelblue",
+            hovertemplate="<b>%{x}</b><br>Avg LIS: %{y:.2f}<extra></extra>",
+        )
+    )
 
-    # Layout customization
+    # 3️⃣  layout
     fig.update_layout(
         title="Average LIS Score by Typology",
         xaxis_title="Typology",
         yaxis_title="Average LIS Score",
         template="plotly_white",
         margin=dict(t=60, b=60, l=60, r=40),
-        height=500
+        height=500,
+        # lock the left-to-right order so Plotly won’t re-sort alphabetically
+        xaxis=dict(categoryorder="array", categoryarray=avg_lis["Typology 1"]),
+    )
+
+    return fig
+
+
+def donut(
+        value,
+        *,
+        primary="#0017ff",
+        remainder="#00004d",
+        size=180,
+        hole=0.78,
+        font_size=26,
+):
+    fig = go.Figure(
+        go.Pie(
+            values=[value, 100 - value],
+            hole=hole,
+            sort=False,
+            direction="clockwise",
+            rotation=90,
+            marker_colors=[primary, remainder],
+            textinfo="none",
+            hoverinfo="skip",
+        )
+    )
+
+    fig.update_layout(
+        annotations=[
+            dict(
+                text=f"{int(value)}%",
+                x=0.5, y=0.5,
+                xref="paper", yref="paper",
+                showarrow=False,
+                font=dict(size=font_size, color="#0017ff"), 
+                align="center",
+            )
+        ],
+        width=size,
+        height=size,
+        margin=dict(t=0, b=0, l=0, r=0),
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
 
     return fig

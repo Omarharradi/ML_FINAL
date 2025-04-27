@@ -35,7 +35,8 @@ from utils import (
     plot_training_buckets_per_skill,
     plot_recommended_resources_by_skill,
     plot_eq_leader_skills,
-    plot_lis_by_typology
+    plot_lis_by_typology,
+    donut
 )
 
 # SQLite patch for compatibility
@@ -79,8 +80,11 @@ df['EQ']=df['Overall Results']
 df['Link'] = "https://ivy-dashboard-4833f144eaf4.herokuapp.com/page-2?user_id=" + df['ID'].astype(str)
 df['Dashboard Link'] = df['Link'].apply(lambda x: f"[Open Dashboard]({x})")
 below70=pd.read_csv('below_70.csv')
+below70.index += 1   
 above85=pd.read_csv('above_84.csv')
+above85.index += 1   
 between_70_84=pd.read_csv('between_70_84.csv')
+between_70_84.index += 1   
 
 resource=pd.read_csv('resources_summary.csv')
 
@@ -231,12 +235,14 @@ def handle_message():
 #st.sidebar.markdown("---")
 st.sidebar.markdown("Chat Assistant", help="Ask questions about the data and get insights. You can ask about specific metrics, trends, or any other data-related queries (e.g., 'What is the average EQ score? Who has the highest LIS?'). You can also ask about anything related to the report, such as 'What is LDNA?'.")
 
-# Clear chat history
-if st.sidebar.button("🗑️ Clear History"):
-    st.session_state.chat_history = []
+
 
 # Use a temp key for the text input
 st.sidebar.text_input("Your message:", key="temp_input", on_change=handle_message)
+
+# Clear chat history
+if st.sidebar.button("🗑️ Clear History"):
+    st.session_state.chat_history = []
 
 # --- Chat Display ---
 st.sidebar.markdown("""
@@ -345,7 +351,7 @@ html += """
 
 ## ppt insights
 
-st.title("LEADERSHIP DEVELOPMENT PROGRAM (LDP) PILOT")
+st.title("HIGH-LEVEL OVERVIEW OF THE LEADERSHIP DEVELOPMENT PROGRAM (LDP) PILOT")
 st.caption("AI-Powered Leadership Competency Viewer")
 
 st.markdown("The AI-powered Leadership Competency Viewer is an interactive analytics tool that helps HR and leadership teams explore real-time insights, track development progress, and make data-driven talent decisions based on overall leadership competency levels.")
@@ -449,23 +455,69 @@ st.subheader("📊 Executive Summary: Understanding the leadership landscape of 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric(label="Leaders Fit Their Roles", value="86%", delta="Strong or Very Strong Fit")
-    st.caption("Based on their Key, Useful, and Supplemental Skills.")
+# inject one-time CSS
+    st.markdown(
+    """
+    <div style="display:flex;flex-direction:column;align-items:center;padding:0.5rem;">
+        <span style="font-size:2rem;font-weight:600;">86&nbsp;%</span>
+        <span style="color:gray;">Of Leaders Fit Strongly or Very Strongly their Roles</span>
+        <span style="font-size:0.9rem;color:gray;">Based on their Key, Useful, and Supplemental Skills.</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 with col2:
-    st.metric(label="Avg Leadership Index (LIS)", value="78%")
-    st.caption("Combines emotional intelligence and all job-relevant skills.")
+   st.markdown(
+    """
+    <div style="display:flex;flex-direction:column;align-items:center;
+                text-align:center;padding:0.5rem;">
+        <span style="font-size:2rem;font-weight:600;">78&nbsp;% *</span>
+        <span style="color:gray;">is the Avg Leadership Index</span>
+        <span style="font-size:0.9rem;color:gray;">
+            Measures a leader's fit for their role by combining Emotional Intelligence and all job-relevant skills
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Second Row
 col3, col4 = st.columns(2)
 
 with col3:
-    st.metric(label="Recommended EQ Training", value="96%")
-    st.caption("Other flagged areas: Communication, Accountability.")
+    st.markdown(
+    """
+    <div style="display:flex;flex-direction:column;align-items:center;
+                text-align:center;padding:0.5rem;">
+        <span style="font-size:2rem;font-weight:600;">96&nbsp;%</span>
+        <span style="color:gray;">Of Leaders are recommended training in EQ</span>
+        <span style="font-size:0.9rem;color:gray;">
+            The other most frequently flagged development areas include Communication and Accountability
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 with col4:
-    st.metric(label='"Mentoring" Leaders', value="35%")
-    st.caption('This typology showed the highest leadership index (LIS) in our study.')
+    st.markdown(
+    """
+    <div style="display:flex;flex-direction:column;align-items:center;
+                text-align:center;padding:0.5rem;">
+        <span style="font-size:2rem;font-weight:600;">35&nbsp;%</span>
+        <span style="color:gray;">Of Leaders are "Mentoring Leaders"</span>
+        <span style="font-size:0.9rem;color:gray;">
+            Our study showed that leaders with the "Mentoring" typology had the highest leadership indexes
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+    
+st.markdown("### How Is the Leadership Index Score (LIS) Calculated?")
+st.code("* LIS = (Emotional Intelligence/Quotient (EQ) × 0.40) + (Key Skills × 0.30) + (Useful Skills × 0.21) + (Supplemental Skills × 0.09)", language="python")
 st.markdown("---")
 
 
@@ -499,9 +551,13 @@ with col2:
     st.metric(label='"Mentoring" Leadership Style', value="35%")
     st.caption("High people-centricity; asset for mentorship culture.")
 
-df_sorted = df.sort_values(by='LIS', ascending=False)
 
-type_pie1, type_summary1 = plot_typology_distribution(df)
+leader_options = ["— none —"] + sorted(df["Leader"].unique())
+choice = st.selectbox("Highlight a leader", leader_options, help="Select a leader to highlight them on the chart.")
+
+selected = None if choice == "— none —" else choice
+
+type_pie1, type_summary1 = plot_typology_distribution(df, selected_leader=selected)
 
 st.plotly_chart(type_pie1, use_container_width=True, key="type_pie1")
 
@@ -522,14 +578,53 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.subheader("Below 70")
-    st.dataframe(below70)
+    st.caption('Indicates a spectrum fromdevelpment needs to possible misalignment, based on distancefrom the defined threshold')
+   # st.plotly_chart(donut(14), key="donut_below_70")
+    #st.subheader('Preliminary Fit - Further Review')
+   # st.caption('The 12 leaders scoring between 60 and 70 averaged only 3-5% below the threshold - indicating not a lack of role fit, but the need for closer review and potential targeted support.')
+   # st.dataframe(below70)
 
 with col2:
     st.subheader("70-84")
-    st.dataframe(between_70_84)
+    st.caption('Demonstrates strong alignment with role expectations; well-positioned for success with room for targeted growth')
+    #st.plotly_chart(donut(14), key="donut_70_84")
+   # st.subheader('Strong Fit Role')
+    #st.caption('As a first pilot, 60 leaders scoring between 70 and 84 demonstrate a strong organizational fit and a solid leadership baseline at scale.')
+   # st.dataframe(between_70_84)
 with col3:
     st.subheader("84+")
+    st.caption('Exhibits exceptional alignment with leadership expectations; highly suited for advanced responsibility, visibility, and succession planning')
+   # st.plotly_chart(donut(14), key="donut_84_plus")
+   # st.subheader('Very Strong Fit Role')
+    #st.caption('Impressively, 12 out of 85 leaders - over 20% - scored above 85, showcasing an exceptional level of leadership alignment and signaling a strong bench of highpotential talent.')
+    #st.dataframe(above85)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.plotly_chart(donut(14), key="donut_below_70")
+    st.subheader('Preliminary Fit - Further Review')
+    st.caption('The 12 leaders scoring between 60 and 70 averaged only 3-5% below the threshold - indicating not a lack of role fit, but the need for closer review and potential targeted support.')
+
+with col2:
+    st.plotly_chart(donut(66), key="donut_70_84")
+    st.subheader('Strong Fit Role')
+    st.caption('As a first pilot, 60 leaders scoring between 70 and 84 demonstrate a strong organizational fit and a solid leadership baseline at scale.')
+with col3:
+    st.plotly_chart(donut(20), key="donut_84_plus")
+    st.subheader('Very Strong Fit Role')
+    st.caption('Impressively, 12 out of 85 leaders - over 20% - scored above 85, showcasing an exceptional level of leadership alignment and signaling a strong bench of highpotential talent.')
+
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.dataframe(below70)
+with col2:
+    st.dataframe(between_70_84)
+with col3:
     st.dataframe(above85)
+
 st.markdown("---")
 
 
@@ -540,20 +635,21 @@ st.subheader("Leadership Role Fit Analysis")
 
 # Create a new row with two columns for the other metrics
 col1, col2 = st.columns(2)
-
+high_lis = df.loc[df["LIS"] > 88.41, ["Leader", 'Position', "LIS"]].reset_index(drop=True)         
+high_lis.index = high_lis.index + 1    
+low_lis = df.loc[df["LIS"] < 67.33, ["Leader","Position", "LIS", ]].reset_index(drop=True)
+low_lis.index = low_lis.index + 1
 with col1:
     st.metric(label="Leaders Scoring Well Above Avg", value="7")
     st.caption("Over 88.42 LIS")
-    st.dataframe(df.loc[df['LIS'] > 88.41, ['Leader', 'LIS', 'Position']])  # Replace 'above85' with your actual DataFrame variable
+    st.dataframe(high_lis)  # Replace 'above85' with your actual DataFrame variable
 
 with col2:
     st.metric(label="Growth Needed Leaders", value="8")
     st.caption("Under 67.33 LIS")
-    st.dataframe(df.loc[df['LIS'] < 67.33, ['Leader', 'LIS', 'Position']])  # Replace 'above85' with the appropriate DataFrame variable if different
+    st.dataframe(low_lis)  # Replace 'above85' with the appropriate DataFrame variable if different
 
 
-st.markdown("### How Is the Leadership Index Score (LIS) Calculated?")
-st.code("LIS = (EQ × 0.40) + (KS × 0.30) + (US × 0.21) + (SS × 0.09)", language="python")
 
 st.markdown("---")
 
@@ -564,15 +660,15 @@ st.markdown("### How Did the Whole Group Score?")
 col4, col5, col6 = st.columns(3)
 
 with col4:
-    st.metric(label="Key Skills", value="84.3")
+    st.metric(label="Key Skills", value="84%")
     st.caption("Highest performance area — strong foundational leadership competencies.")
 
 with col5:
-    st.metric(label="Useful Skills", value="80.2")
+    st.metric(label="Useful Skills", value="80%")
     st.caption("Supporting competencies — solid performance across leadership roles.")
 
 with col6:
-    st.metric(label="Supplemental Skills", value="81.1")
+    st.metric(label="Supplemental Skills", value="81%")
     st.caption("Contextual skills — unexpectedly strong performance indicators.")
 
 
@@ -619,40 +715,67 @@ st.write("Highlighting Immediate Development Focus Areas")
 # Create a row of columns for the training priorities
 col1, col2, col3, col4 = st.columns(4)
 
+st.markdown(
+    """
+    <style>
+    .big-num {
+        font-size: 2.1rem !important;   /* <-- force a larger size */
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ── 2 · layout ───────────────────────────────────────────────────────
+col1, col2, col3, col4 = st.columns(4)
+
 with col1:
-    st.markdown("**96%**")
+    st.markdown("<div class='big-num'>96&nbsp;%</div>", unsafe_allow_html=True)
     st.write("Leaders Need EQ Training")
 
 with col2:
-    st.markdown("**65%**")
+    st.markdown("<div class='big-num'>65&nbsp;%</div>", unsafe_allow_html=True)
     st.write("Leaders Need Accountability Training")
 
 with col3:
-    st.markdown("**46%**")
+    st.markdown("<div class='big-num'>46&nbsp;%</div>", unsafe_allow_html=True)
     st.write("Leaders Need Communication Training")
 
 with col4:
-    st.markdown("**33%**")
+    st.markdown("<div class='big-num'>33&nbsp;%</div>", unsafe_allow_html=True)
     st.write("Leaders Need Change Management Training")
 
 st.subheader("Developmental Distribution of EQ: Widespread Need Development")
 
-fig=plot_eq_leader_skills()
+leaders = ["— none —"] + sorted(df["Leader"].unique())
+choice = st.selectbox("Highlight a leader", leaders)
+
+selected = None if choice == "— none —" else choice
+fig = plot_eq_leader_skills(df, selected_leader=selected)
 st.plotly_chart(fig, use_container_width=True)
 
 # 30
     
-st.subheader("Results: Engagement Behavior & Development Areas per Leader")
+st.subheader("Behavioral Hotspot: Low-Engagement Risks")
 
-col1, col2 = st.columns(2)
+# Intro caption
+st.caption("Critical performance and engagement metrics revealing organizational risk areas:")
 
-with col1:
-    st.metric(label="Engagement", value="54%")
-    st.caption("Based on completion metrics and response time — 85 out of 100 leaders completed both discovery tools.")
+st.markdown(
+    """
+    <div style="display:flex;flex-direction:column;align-items:center;padding:0.5rem;">
+        <span style="font-size:2rem;font-weight:600;">50&nbsp;%</span>
+        <span style="color:gray;">Scored below 60% on engagement</span>
+        <span style="font-size:0.9rem;color:gray;">Indicating substantial disengagement risk that threatens both role alignment and development implementation</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-with col2:
-    st.metric(label="Avg Development Areas per Leader", value="7")
-    st.caption("Most skill gaps identified in EQ, Communication, Accountability & Change Management.")
+
 
 
 ### TOOL

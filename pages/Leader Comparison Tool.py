@@ -84,6 +84,7 @@ below70=pd.read_csv('below_70.csv')
 above85=pd.read_csv('above_85.csv')
 between_70_84=pd.read_csv('between_70_84.csv')
 
+
 resource=pd.read_csv('resources_summary.csv')
 
 
@@ -124,7 +125,6 @@ melted_df = df.melt(
     "Awareness of Strengths and Limitations",
     "Comfort with Emotions",
     "Recognition of Other's Emotions",
-    "Rumination",
     "Problem-Solving",
     "Positive Mindset",
     "Emotional Reflection",
@@ -288,7 +288,6 @@ st.markdown("---")
 
 st.subheader("Leadership Role Fit Overview", help='This chart shows which leaders demonstrate role proficiency, which are surpassing role proficiency, and which require training.')
 donut_fig, donut_summary = build_donut_chart(df_filtered['LIS'])
-type_pie, type_summary = plot_typology_distribution(df_filtered)
 
 col1_row, col2_row = st.columns(2)
 with st.container():
@@ -317,6 +316,11 @@ with st.container():
 st.markdown("---")
 st.subheader("Leadership Typology", help="This chart shows the distribution of Leaders by their leadership typology.")
 with st.container():
+    leader_options = ["— none —"] + sorted(df["Leader"].unique())
+    choice = st.selectbox("Highlight a leader", leader_options, help="Select a leader to highlight them on the chart.")
+
+    selected = None if choice == "— none —" else choice
+    type_pie, type_summary = plot_typology_distribution(df_filtered, selected_leader=selected)
     display_insight("pie", plot_typology_distribution, type_summary, llm, "Insights for Pie Chart")
     st.plotly_chart(type_pie, use_container_width=True)
 
@@ -358,25 +362,29 @@ with col2:
     st.plotly_chart(fig_weak, use_container_width=True)
 
 st.markdown("---")
-st.subheader("Radar Chart", help="This chart shows the performance of leaders accross their skills, compared to the average of their group.")
-unique_dashboards = sorted(df_filtered["# Dashboard"].unique())
+st.subheader("Skillset Analysis", help="This chart shows the performance of leaders accross their skills, compared to the average of their group.")
+st.subheader("Group Skill Averages")
+st.caption('Select Leader to compare their performance with the average of their group.')
+unique_leader = sorted(df_filtered["Leader"].unique())
+if unique_leader:
+    selected_leader = st.selectbox("Select Leader", unique_leader, help="Select a leader to visualize the radar chart and see their performance." )
+    selected_dashboards = df_filtered[df_filtered["Leader"] == selected_leader]["# Dashboard"].values[0]
+    fig_radar, radar_stats = radar_chart_plotly(selected_dashboards, selected_leader, df_filtered, skills_mapping)
 
-if unique_dashboards:
-    selected_dashboard = st.selectbox("Select Dashboard", unique_dashboards, help="Select a dashboard group to visualize the radar chart." )
-    dashboard_leaders = sorted(df_filtered[df_filtered["# Dashboard"] == selected_dashboard]["Leader"].unique())
-    selected_leader = st.selectbox("Select Leader", dashboard_leaders, help="Select a leader to visualize their performance.")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Average Key Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
-    with col2:
-        st.metric("Average Useful Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Necessary Skills"].values[0])
-    with col3:
-        st.metric("Average Supplemental Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Beneficial Skills"].values[0])
-    fig_radar, radar_stats = radar_chart_plotly(selected_dashboard, selected_leader, df_filtered, skills_mapping)
-    display_insight("radar", radar_chart_plotly, radar_stats, llm, "Insights for Radar Chart")
-    st.plotly_chart(fig_radar, use_container_width=True)
-else:
-    st.write("No data available for the selected filters.")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("Average Key Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Key Skills"].values[0])
+with col2:
+    st.metric("Average Useful Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Necessary Skills"].values[0])
+with col3:
+    st.metric("Average Supplemental Skills", value=df_filtered[df_filtered["Leader"] == selected_leader]["Beneficial Skills"].values[0])
+
+
+
+
+display_insight("radar", radar_chart_plotly, radar_stats, llm, "Insights for Radar Chart")
+st.plotly_chart(fig_radar, use_container_width=True)
+
 
 st.markdown("---")
 st.header("How can we bridge those gaps effectively?")
